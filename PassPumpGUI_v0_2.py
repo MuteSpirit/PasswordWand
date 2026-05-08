@@ -5,7 +5,7 @@
 # Copyright 2019
 # Daniel Murphy
 #
-from Tkinter import *
+from tkinter import *
 import tkinter.ttk as ttk
 import serial
 import serial.tools.list_ports
@@ -65,7 +65,7 @@ above.  Then hit return or
 click on Submit."""
     txt_dir.delete('1.0', END)
     txt_dir.insert(END, directions)
-    print directions
+    print(directions)
     window.update()
     poll()
 
@@ -83,7 +83,7 @@ above.  Then hit return or
 click on Submit."""
     txt_dir.delete('1.0', END)
     txt_dir.insert(END, directions)
-    print directions
+    print(directions)
     window.update()
     poll()
 
@@ -113,7 +113,7 @@ then short click and then
 long click. """
     txt_dir.delete('1.0', END)
     txt_dir.insert(END, directions)
-    print directions
+    print(directions)
     window.update()
     poll()
 
@@ -132,7 +132,7 @@ Exit."""
     txt_dir.delete('1.0', END)
     txt_dir.insert(END, directions)
     window.update()
-    print directions
+    print(directions)
 
 def clickedClose():
     if s.is_open:
@@ -153,13 +153,13 @@ Name text box above, and hit
 return or click on Submit."""
     txt_dir.delete('1.0', END)
     txt_dir.insert(END, directions)
-    print directions
+    print(directions)
     window.update()
     poll()
 
 def poll():
     attribute = s.readline()
-    print attribute
+    print(attribute)
     if int(attribute) == 8:    #account
         txt_acct.config(state='normal')
         txt_user.config(state='disabled')
@@ -216,7 +216,7 @@ def on_select(event=None):
     global port
     port = cb.get()
     # get selection directly from combobox
-    print("comboboxes: ", cb.get())
+    print(("comboboxes: ", cb.get()))
 
 btn_acct = Button(window, text="Submit", command=clickedAcct)
 btn_acct.grid(column=2, row=1)
