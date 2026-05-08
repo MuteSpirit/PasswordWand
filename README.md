@@ -1,4 +1,25 @@
-# PasswordPump
+# PasswordWand
+
+Fork of https://github.com/seawarrior181/PasswordPump
+
+When I tried to make PasswordPump device I found that ...
+* code can't be compiled at 2026 year 
+* committed "\*.hex" files don't want to work after burn to the board. I've broken two Arduino Pro Micro during my tries.
+* PassPumpGUI cannot be run with Python3. At the same time Python2 is deprecated.
+
+I know about PasswordPumpII project. But it's based on another board and I still think that such device should be as cheap as possible. 
+
+Roadmap:
+* Adapt ./PassPumpGUI_v0_2.py code for Python3 execution with 
+* Compile sketch
+* Replace PassPumpGUI with embed CLI to avoid need to install any to host PC
+* Replace USP connection with Bluetooth one. Keep USB for CLI usage only
+* Replace Rotate Encoder with several (3-4) buttons. Encoder is not so accurate and usable by my opinion. And buttons will be easier to hide under case to avoid peeping master password typing.
+
+# Original README
+
+## PasswordPump
+
 An ATMega32u4 USB based credentials manager.  See www.5volts.org for more information.
 
 The following libraries need to be installed if you're going to work with the source code:
