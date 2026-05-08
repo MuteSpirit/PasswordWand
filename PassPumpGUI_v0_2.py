@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 #
 # GUI to interface with the PasswordPump
+# Dependencies on Ubuntu/Debian:
+#   python3-tk
+#   python3-serial
 #
 # Copyright 2019
 # Daniel Murphy
 #
+# Copyright 2026
+# Ivan Efimov
 from tkinter import *
 import tkinter.ttk as ttk
 import serial
