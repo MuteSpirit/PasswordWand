@@ -40,6 +40,8 @@ cli_init(struct Account *pacct, const unsigned int size) {
     ls_cmd.setDescription(ls_cmd_usage);
 
     cli.setOnError(error_cb);
+
+    cli_off();
 }
 
 void cli_loop_step() {
@@ -98,4 +100,12 @@ void ls_accounts(__attribute__((unused)) cmd *pcmd) {
   for (unsigned int i = 0; i < accts_size; ++i) {
     Serial.println(accts[i].name); 
   }
+}
+
+void cli_on() {
+    cli.unpause();
+}
+
+void cli_off() {
+    cli.pause();
 }
