@@ -16,6 +16,7 @@ import serial
 import serial.tools.list_ports
 from serial.tools.list_ports import comports
 import argparse
+import sys
 
 window = Tk()
 window.title("PasswordPump Edit Credentials")
@@ -58,7 +59,7 @@ txt_style.config(state='disabled')
 
 def clickedAcct():
     resAcct = txt_acct.get()
-    s.write(resAcct + '\n')
+    s.write((resAcct + '\n').encode('utf-8'))
     txt_acct.config(state='disabled')
 #    window.after(100, poll)
     directions = """On the PasswordPump long click
@@ -76,7 +77,7 @@ click on Submit."""
 
 def clickedUser():
     resUser = txt_user.get()
-    s.write(resUser + '\n')
+    s.write((resUser + '\n').encode('utf-8'))
     txt_user.config(state='disabled')
 #    window.after(100, poll)
     directions = """On the PasswordPump long click
@@ -94,7 +95,7 @@ click on Submit."""
 
 def clickedPass():
     resPass = txt_pass.get()
-    s.write(resPass + '\n')
+    s.write((resPass + '\n').encode('utf-8'))
     txt_pass.config(state='disabled')
 #    window.after(100, poll)
     directions = """On the PasswordPump long click
@@ -125,7 +126,7 @@ long click. """
 def clickedStyle():
     resStyle = txt_style.get()
     txt_style.config(state='disabled')
-    s.write(resStyle + '\n')
+    s.write((resStyle + '\n').encode('utf-8'))
     txt_style.config(state='disabled')
     directions = """On the PasswordPump long click
 to accept the entered style.
