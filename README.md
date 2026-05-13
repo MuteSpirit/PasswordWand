@@ -10,11 +10,30 @@ When I tried to make PasswordPump device I found that ...
 I know about PasswordPumpII project. But it's based on another board and I still think that such device should be as cheap as possible. 
 
 Roadmap:
-* Adapt ./PassPumpGUI_v0_2.py code for Python3 execution with 
-* Compile sketch
-* Replace PassPumpGUI with embed CLI to avoid need to install any to host PC
+* [x] Adapt ./PassPumpGUI_v0_2.py code for Python3 execution with 
+* [x] Compile sketch
+* [~] Replace PassPumpGUI with embed CLI to avoid need to install any to host PC
 * Replace USP connection with Bluetooth one. Keep USB for CLI usage only
 * Replace Rotate Encoder with several (3-4) buttons. Encoder is not so accurate and usable by my opinion. And buttons will be easier to hide under case to avoid peeping master password typing.
+
+# POC
+
+Use Arduino Uno for easier sketch uploading.
+Test keyboard functionality is not possible but others - CLI, OLED, encoder and EEPROM, - can be developed.
+
+Arduino Uno
+OLED SSD1306 128x32
+
+Pins:
+* 5V - to OLED VCC, to ...
+* GND - to OLED GND, to ...
+* A4 - OLED SDA
+* A5 - OLED SCK
+
+Libraries:
+* SimpleCLI
+* GyverOLED
+* GyverOLEDMenu
 
 # Original README
 
