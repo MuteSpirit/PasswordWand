@@ -2,9 +2,13 @@
 #include "account.hpp"
 #include "version.hpp"
 #include "display.hpp"
+#include "ext_storage.hpp"
 
 // Baud rate for serial port
 #define BAUD_RATE 38400
+
+#define EnableInterrupts()        sei()                                                                                                                                                 
+#define DisableInterrupts()       cli() 
 
 Account acct[] = {
   {"1", "u1", "p1"},
@@ -23,8 +27,12 @@ setup() {
   Serial.begin(BAUD_RATE);
   print_welcome_serial();
 
-  display_init(acct, acct_size);
-  print_welcome_oled();
+  Print& oled = display_init(acct, acct_size);
+  //print_welcome_oled();
+
+  //DisableInterrupts();
+  no_int_ext_storage_init(oled);
+  //EnableInterrupts();
 }
 
 void
