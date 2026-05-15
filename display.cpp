@@ -1,7 +1,8 @@
 #include <GyverOLED.h>
+#include <GyverOLEDMenu.h>
+
 #include "version.hpp"
-#include "GyverOLEDMenu.h"
-#include "account.hpp"
+#include "model.hpp"
 
 #define SHOW_SPLASHSCREEN         3000                                          // in microseconds
 
@@ -17,7 +18,7 @@ const int BTN_ENTER_PIN = 7; // ENTER
 
 void menu_item_cb(const int index, const void* val, const byte valType);
 
-boolean cli_turn_on = false;
+bool cli_turn_on = true;
 
 Account *accounts = NULL;
 unsigned int account_size = 0;

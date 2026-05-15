@@ -15,19 +15,19 @@ void EEPROM_send16BitAddress(uint16_t address);                                 
 uint8_t EEPROM_readStatus(void);                                                // reads the EEPROM status register
 uint8_t EEPROM_readStatusSecondary(void);
 void EEPROM_writeEnable(void);                                                  // helper: sets EEPROM write enable
-uint8_t read_eeprom_byte(uint16_t address);                                     // gets a byte from a given memory location
+uint8_t read_eeprom_byte(const uint16_t address);                                     // gets a byte from a given memory location
 void read_eeprom_array( uint16_t address, 
                         uint8_t *buffer, 
                         uint8_t sizeOfBuffer,
-                        uint8_t primaryFlag);
+                        uint8_t primaryFlag = true);
 void write_eeprom_byte(uint16_t address, uint8_t byte) ;                        // writes a byte to a given memory location
-void write_eeprom_array(uint16_t address, 
-                        uint8_t *buffer, 
-                        uint8_t sizeOfBuffer);
-bool eeprom_is_addr_ok(unsigned int addr);
-bool eeprom_write_bytes( unsigned int startAddr, 
-                            const uint8_t* buf, 
-                            uint8_t numBytes);
+void write_eeprom_array(const uint16_t address, 
+                        const uint8_t * const buf, 
+                        const uint8_t size);
+bool eeprom_is_addr_ok(const uint16_t addr);
+bool eeprom_write_bytes( const uint16_t startAddr,
+                         const uint8_t* buf,
+                         const uint8_t numBytes);
 void eeprom_write_int_bytes( unsigned int startAddr,
                                 const uint8_t* buf,
                                 uint8_t numBytes);

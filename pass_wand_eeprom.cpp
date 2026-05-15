@@ -6,9 +6,9 @@
                                                                                 //
 // for Arduino Uno
 const int csPin PROGMEM = PD5;
-const int wpPin PROGMEM = PD3;
+const int wpPin PROGMEM = 999; /* fake. On board it's pulled up to 5V */
 
-EEPROM_SPI_WE eep(&SPI, csPin, wpPin, 500000);
+EEPROM_SPI_WE eep(csPin, wpPin, 1000000);
 
 //- SPI logic                                                                      from "Make: AVR Programming", Chapter 16. SPI, by Elloit Williams, Published by Maker Media, Inc, 2014
                                                                                 // https://www.safaribooksonline.com/library/view/make-avr-programming/9781449356484/ch16.html
@@ -41,13 +41,16 @@ EEPROM_SPI_WE eep(&SPI, csPin, wpPin, 500000);
 // }
 
 
-bool eeprom_is_addr_ok(unsigned int addr) {                                  // Returns true if the address is between the
-  return ((addr >= MIN_AVAIL_ADDR) && (addr <= MAX_AVAIL_ADDR));                // minimum and maximum allowed values, false otherwise.
+bool 
+eeprom_is_addr_ok(const uint16_t addr) {
+    return ((addr >= MIN_AVAIL_ADDR) && (addr <= MAX_AVAIL_ADDR));                // minimum and maximum allowed values, false otherwise.
 }
                                                                                 // When returning false, nothing gets written to eeprom.
-bool eeprom_write_bytes( uint16_t startAddr,                                 // TODO: cut out a lot of the boundry checking to reduce the size of this function
-                            const uint8_t* buf,
-                            uint8_t numBytes) {
+bool 
+eeprom_write_bytes(const uint16_t startAddr,                                 // TODO: cut out a lot of the boundry checking to reduce the size of this function
+                        const uint8_t* buf,
+                        const uint8_t numBytes)
+{
   // both first byte and last byte addresses must fall within
   // the allowed range 
   if (!eeprom_is_addr_ok(startAddr) || 
@@ -55,8 +58,7 @@ bool eeprom_write_bytes( uint16_t startAddr,                                 // 
     return false;
   }
 
-  if (numBytes > EEPROM_BYTES_PER_PAGE) numBytes = EEPROM_BYTES_PER_PAGE;
-  write_eeprom_array(startAddr, buf, numBytes);
+  write_eeprom_array(startAddr, buf, (numBytes > EEPROM_BYTES_PER_PAGE) ? EEPROM_BYTES_PER_PAGE : numBytes);
   return true;
 }
 
@@ -65,7 +67,7 @@ void eeprom_write_int_bytes( unsigned int addr,                         // given
                              uint8_t size)
 {
   for (uint16_t i = 0; i < size && eeprom_is_addr_ok(addr + i); i++) {                                      // iterate over every byte in the buffer
-    eep.put(addr + i, buf[i]);                                        // write out each byte
+    eep.write(addr + i, buf[i]);                                        // write out each byte
   }
 }
 
@@ -73,40 +75,40 @@ void eeprom_read_int_string(uint16_t addr,                                  // r
                             unsigned char* buf, 
                             uint8_t size)
 {
-    for (uint16_t i = 0; i < size && eeprom_is_addr_ok(addr + i); ++i) {
-        buf[i] = eep.read(addr + i);
+    for (uint16_t i = 0; i < size && eeprom_is_addr_ok(addr + i * sizeof(uint8_t)); ++i) {
+        buf[i] = eep.read(addr + i * sizeof(uint8_t));
     }
 }
 
-uint8_t read_eeprom_byte(uint16_t address) {
-    uint8_t v;
-    eep.get(address, v);
-    return v;
+uint8_t read_eeprom_byte(const uint16_t addr) {
+    return eep.read(addr);
 }
 
 // READ EEPROM bytes
-void read_eeprom_array( uint16_t addr, 
-                        uint8_t *buf, 
-                        uint8_t size,
-                        uint8_t primaryFlag = true ) 
+void 
+read_eeprom_array(uint16_t addr, 
+                  uint8_t *buf, 
+                  uint8_t size,
+                  uint8_t primaryFlag) 
 {
     (void)(primaryFlag);
-    for (uint16_t i = 0; i < size && eeprom_is_addr_ok(addr + i); ++i) {
-        eep.get(addr+ i, buf[i]);
+    uint8_t b;
+    for (uint8_t i = 0; i < size && eeprom_is_addr_ok(addr + i * sizeof(uint8_t)); ++i) {
+        buf[i] = eep.read(addr + i * sizeof(uint8_t));
     }
 }
 
 void write_eeprom_byte(uint16_t address, const uint8_t byte) {
-    eep.put(address, byte);
+    eep.write(address, byte);
 }
 
 void
 write_eeprom_array(
-    uint16_t address, 
+    const uint16_t address, 
     const uint8_t * const buf, 
-    uint8_t size)
+    const uint8_t size)
 {
     for (uint16_t i = 0; i < size; ++i) {
-        write_eeprom_byte(address + i, buf[i]);
+        eep.write(address + i * sizeof(uint8_t), buf[i]);
     }
 }

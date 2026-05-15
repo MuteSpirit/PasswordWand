@@ -101,6 +101,8 @@
 #define LIST_HEAD_SIZE            1
 #define GET_ADDR_RESET_FLAG       MAX_AVAIL_ADDR                                // address of the reset flag; when not set to 0x01 indicates that memory hasn't been initialized; 32,768
 #define CREDS_ACCOMIDATED         (INITIAL_MEMORY_STATE_BYTE - 1)               // 254 is max for the 25LC256 with the configuration related values stored at the end. Can't exceed 255. TODO: calculate (MAX_AVAIL_ADDR + 1) / CREDS_TOT_SIZE.  Use 254 because 255 == INITIAL_MEMORY_STATE_BYTE.
+
+// Account: name, username, password, style, prev, next, salt
 #define GET_ADDR_ACCT(pos)        (MIN_AVAIL_ADDR + (pos * CREDS_TOT_SIZE))
 #define GET_ADDR_USER(pos)        (MIN_AVAIL_ADDR + ACCOUNT_SIZE + (pos * CREDS_TOT_SIZE))
 #define GET_ADDR_PASS(pos)        (MIN_AVAIL_ADDR + ACCOUNT_SIZE + USERNAME_SIZE + (pos * CREDS_TOT_SIZE))
@@ -108,10 +110,12 @@
 #define GET_ADDR_PREV_POS(pos)    (MIN_AVAIL_ADDR + ACCOUNT_SIZE + USERNAME_SIZE + PASSWORD_SIZE + STYLE_SIZE + (pos * CREDS_TOT_SIZE))
 #define GET_ADDR_NEXT_POS(pos)    (MIN_AVAIL_ADDR + ACCOUNT_SIZE + USERNAME_SIZE + PASSWORD_SIZE + STYLE_SIZE + PREV_POS_SIZE + (pos * CREDS_TOT_SIZE))
 #define GET_ADDR_CRED_SALT(pos)   (MIN_AVAIL_ADDR + ACCOUNT_SIZE + USERNAME_SIZE + PASSWORD_SIZE + STYLE_SIZE + PREV_POS_SIZE + NEXT_POS_SIZE + (pos * CREDS_TOT_SIZE))
+
 #define GET_ADDR_SETTINGS         (MAX_AVAIL_ADDR - ((EEPROM_BYTES_PER_PAGE * 2) - 1))// use the last page for storing the settings.  TODO: move this to internal EEprom so it is protected by lock bits. 32,704 (cannot be < 32,640)
 #define GET_ADDR_LOGIN_FAILURES   (GET_ADDR_SETTINGS)                           //
 #define GET_ADDR_SHOW_PW          (GET_ADDR_SETTINGS + LOGIN_FAILURES_SIZE)     //
 #define GET_ADDR_LIST_HEAD        (GET_ADDR_SETTINGS + LOGIN_FAILURES_SIZE + SHOW_PASSWORD_FLAG_SIZE ) // points to the head of the linked list
+
 #define MAX_AVAIL_INT_ADDR        0x03FF                                        // 1,023 is the max address of the EEprom on AtMega32u4
 #define MIN_AVAIL_INT_ADDR        0x00                                          // assuming we start at the very beginning of EEprom
 #define GET_ADDR_MASTER_HASH      (MAX_AVAIL_INT_ADDR - HASHED_MASTER_PASSWORD_SZ)// store hashed master password near the end of EEprom (sneaky)
