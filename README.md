@@ -14,15 +14,12 @@ PasswordPumpII project is exist but it's based on board which price is in 5-7 ti
 
 ## PasswordPump (original project)
 
+GitHub: https://github.com/seawarrior181/PasswordPump
+
 Author: Dan Murphy aka <seawarrior181>
 
-An ATMega32u4 USB based credentials manager.  See www.5volts.org for more information.
-
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
-
-This program and device are distributed in the hope that they will be 
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+An ATMega32u4 USB based credentials manager. 
+See www.5volts.org for more information.
 
 ## !!! Warning !!!
 
@@ -39,4 +36,14 @@ Credential manager is device storing sensitive information and it's used for sec
 
 Customers may trust proprietary solutions due to manufacturer reputation even if device internals is unknown.
 
-Small project should be opened to become acceptablealternative.
+Small project should be opened to become acceptable alternative.
+
+# Disclamers
+
+The PasswordWand is not secure from keylogging attacks (https://en.wikipedia.org/wiki/Keystroke_logging). 
+
+Under no circumstances and under no legal theory, whether in tort (including negligence), contract, or otherwise, shall the creator of this device and software be liable to any person for any direct, indirect, special, incidental, or consequential damages of any character arising as a result of the use of the PasswordWand including, without limitation, damages for loss of goodwill, work stoppage, computer failure or malfunction, personal injury, death or any and all other damages or losses. 
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+
+This program and device are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
