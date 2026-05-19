@@ -227,19 +227,21 @@ AES128 is used now and encryption and SHA256 for hashing.
 Salt is needed to defense from situation when 
 * intruder received external EEPROM with stored encrypted credentials ...
 * ... and know master password
-Without salt knowledge credentials will be not able to decrypt in suitable time.
+Without knowledge about salt he will be not able to decrypt data in suitable time.
 
 Salt must be generated on 1st boot and on factory reset.
 
 Salt must be stored in internal EEPROM.
 
+Salt must be enough strong to make broutforce much harder.
+
 Master password must be stored in RAM only.
 
 Salted Master Password hash must be stored in internal EEPROM.
 
-Salt for each credential account is needed to 
-* avoid hash collision
-* hide that some password are the same for different accounts
+Salt for each credential account is also needed. It's true that PasswordWand will encrypt them instead of calculation hashes but if not use the unique salt for each account then even encrypted data may show that for more then one site the same login and passwords are used. This project is OpenSource and data storage structure will not be a secret.
+
+So if combine master password with credential salt for decrypt/encrypt the name, username and password then we'll be able to hide information about some login/pass equiality for different services.
 
 Arduino Pro Micro has only 1Kb of internal EEPROM. So we cannot store salt for 254 accounts there. So unique salt will be stored inside each credential account on external EEPROM.
 It's more scalable solution because theoretically it's possible to use bigger 25LC512 and use several chips to store enough more credentials. At that case internal EEPROM cannot store all needed salts anyway.
@@ -249,28 +251,30 @@ It's more scalable solution because theoretically it's possible to use bigger 25
 | Parameter Name | Size, bytes | Purpose |
 | --- | --- | --- |
 | Reserved | 4 | Reserved for Layout version - EEPROM data store schema version. |
-| Master Password Salt | 2 | |
+| Master Password Salt | 32 | |
 | Master Password Hash | 32 | |
-| Fail Login Count | | Amount of failed device login after last success authentication |
-| Credentials Pepper | 2 | Used together with dynamic salt per account |
+| Master Password Commit Flag | 1 | Set to 0x1 after store both salt and hash |
+| Fail Login Count | 1 | Amount of failed device login after last success authentication |
+
+We have to take power cut event into account designing all operations with internal EEPROM. If operation happen with data which size more then byte the additional "commit flag" byte is needed.
 
 ## External EEPROM Layout
 
 | Parameter Name | Size, bytes |Purpose |
 | --- | --- | --- |
 | Reserved | 32 | 1 reserved page |
-| Creds Account 0. Init Flag | 1 | 0x00 or 0xFF for free account place. 0x01 if initialized. Fill it when all other fields will be written |
-| Creds Account 0. Name | 32 | Encrypted (?) |
-| Creds Account 0. Username | 32 | Encrypted |
-| Creds Account 0. Password | 32 | Encrypted |
-| Creds Account 0. Salt | 2 | Plain text. Random. Unique for each account |
+| Creds Account 0. Commit Flag | 1 | 0x00 or 0xFF for free account place. 0x01 if initialized. Fill it when all other fields will be written |
+| Creds Account 0. Name      | 32 | Encrypted (?) |
+| Creds Account 0. Username  | 32 | Encrypted |
+| Creds Account 0. Password  | 32 | Encrypted |
+| Creds Account 0. Salt      | 16 | Plain text |
 | ... | ... | ... |
-| Creds Account N. Init Flag | 1 | 0x00 or 0xFF for free account place. 0x01 if initialized. |
-| Creds Account N. Name | 32 | Encrypted (?) |
-| Creds Account N. Username | 32 | Encrypted |
-| Creds Account N. Password | 32 | Encrypted |
-| Creds Account N. Salt | 2 | Plain text. Random. Unique for each account |
-| Reserved | (1 + 32 + 32 + 32 + 2) and aligh to page border -> 128 | Reserved space for future. Maybe it'll be needed to swap accounts on EEPROM |
+| Creds Account N. Commit Flag | 1  | 0x00 or 0xFF for free account place. 0x01 if initialized. |
+| Creds Account N. Name      | 32 | Encrypted (?) |
+| Creds Account N. Username  | 32 | Encrypted |
+| Creds Account N. Password  | 32 | Encrypted |
+| Creds Account 0. Salt      | 16 | Plain text |
+| Reserved | (1 + 32 + 32 + 32 + 16) and aligh to page border -> 128 | Reserved space for future. Maybe it'll be needed to swap accounts on EEPROM |
 | Reserved | 32 | 1 reserved page |
 | Reserved | 31 | page for reset flag |
 | Reset Flag | 1 | Flag that EEPROM initialized or not | 
@@ -282,11 +286,25 @@ PasswordPump v1.3 store credential accounts in double linked list structure on e
 
 ![Don't use DL List](docs/do-not-use-linked-list.png)
 
+:heavy_plus_sign: avoid troubles on power cut
+:heavy_minus_sign: accounts will be shown in mix turn if perform add, del, add operations
+
+We have to take power cut event into account designing all operations with external EEPROM too.
+
+For example add new account should be done like:
+* Store name
+* Store username
+* Store password
+* Store salt
+* Set account commit flag. In last turn.
+
+External EEPROM reinitialization must be done by wiping all data on EEPROM with zeros to be sure that they are descroyed.
+
 ## If there are not enough resources on Arduino Pro Micro
 
 What may be tried:
-* check what libraries spend the most part of resources and try to replace/rewrite them
-* change board, e.g.
+* check what libraries spend the most part of resources and try to replace/rewrite them.
+* use another board, e.g.
   * the same as in PasswordPumpII project
   * ESP32-S2 & ESP32-S3: supports full-speed USB-OTG peripheral which is essential for implementing custom HID devices. 
     * https://github.com/espressif/arduino-esp32/tree/master/libraries/USB
@@ -299,22 +317,35 @@ What may be tried:
     * Bluetooth
     * CPU ARM Cortex-M4F 64MHz, and 1M RAM
     * Low power consumption
+    * used for Meshtastick also
 
+## UI
 
-Fast navigation between accounts (groups of accounts?)
+OLED 128x64 will be used.
+3-color LED will be not used in first versions. I guess larger display will allow to make something like status bar for indication board activity/progress
 
-Print "Credential manager" in welcome
-(if (Serial))
+### Splash screen
+
+Print on display and into Serial (if available):
+* Sketch name
+* Sketch version
+* "Creds manager"
+* Author (?)
+* Sketch compilation date (? and time ?)
+
+For example,
+```
+PasswordWand v0.1
+Credential Manager
+19 May 2026
+Ivan Efimov aka MuteSpirit
+```
+### Menus 
+
+![UI](docs/screens.png)
 
 # PasswordPump Features to change/remove
 
-LED
-
-Send user and password
-
-No Double-Linked list
-
-Power Cut trouble
 init flag as the last 
 
 Not use rotary encoder button.
@@ -338,3 +369,5 @@ EEPROM wipe with eraseCompleteEEPROM
 Use "Hold" pin and continuous put
 
 Add Bluetooth
+
+Fast navigation between accounts (groups of accounts?)
