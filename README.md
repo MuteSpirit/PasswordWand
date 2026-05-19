@@ -1,11 +1,19 @@
 # PasswordWand
 
-Fork of https://github.com/seawarrior181/PasswordPump
+Hardware credential manager is secure replacement of stickers on monitor with login and passwords.
+
+Separate device will store your credentials and type then into login forms.
+
+Keep your creds in secret.
+
+## This project is fork of ...
+
+... https://github.com/seawarrior181/PasswordPump
 
 I'd like to thank Dan Murphy for PasswordPump. It's cool idea and device.
 I'm appreciate how many features has been implemented in orignal sketch.
 
-## Fork Reasons
+### Forking Reasons
 
 PasswordPump usability is too complex by my opinion.
 I'm sure that it's possible to make device more simple and usable.
