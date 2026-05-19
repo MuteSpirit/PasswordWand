@@ -1,8 +1,8 @@
-#include "cli.hpp"
-#include "model.hpp"
-#include "version.hpp"
-#include "display.hpp"
-#include "ext_storage.hpp"
+#include "src/cli.hpp"
+#include "src/model.hpp"
+#include "src/version.hpp"
+#include "src/display.hpp"
+#include "src/ext_storage.hpp"
 
 // Baud rate for serial port
 #define SERIAL_BAUD_RATE 38400

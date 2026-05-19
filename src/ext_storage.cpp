@@ -28,7 +28,6 @@ uint8_t loginFailures = MAX_LOGIN_FAILURES;                                     
                                                                                 // password entry.
                                                                                 // brute force attack.
 uint8_t showPasswordsFlag;                                                      // flag indicating if we show passwords via the UI, or hide them.
-uint8_t keyboardFlag;                                                           // flag indicating if we're using the keyboard to edit creds
 uint8_t addFlag = false;                                                        // tracks wheter we reached the Add Account menu via the main menu or the find menu,
 
 bool get_free_account_pos(uint8_t &pos);
