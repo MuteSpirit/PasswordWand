@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "ext_storage.hpp"
-#include "version.hpp"
 #include "layout.hpp"
 #include "pass_wand_eeprom.hpp"
 #include "encrypt.hpp"
@@ -33,10 +32,6 @@ uint8_t addFlag = false;                                                        
 bool get_free_account_pos(uint8_t &pos);
 uint8_t count_accounts();
 
-void writeAllToEEProm(uint8_t *accountName, 
-                      uint8_t *username, 
-                      uint8_t *password, 
-                      uint8_t pos) ;
 void countAccounts(void) ;
 uint8_t getNextFreeAcctPos(void) ;
 void readAcctFromEEProm(uint8_t pos, uint8_t *buf);
@@ -83,7 +78,7 @@ uint8_t tailPosition = 0;                                                       
 #define BASIC_STR(x) #x
 #define STR(x) BASIC_STR(x)
 
-void no_int_ext_storage_init(Print& log) {
+void ext_storage_init(Print& log) {
     // log.print(F("Init ext EEPROM..."));
     if (eep.init()){
         // TODO: statically check next
@@ -98,54 +93,20 @@ void no_int_ext_storage_init(Print& log) {
     }
 
     if (getResetFlag != MEMORY_INITIALIZED_FLAG) {                                // if memory has never been initialized, initialize it.
-        log.print(F("Reset EEPROM..."));
-        // log.print(F("Reset int EEPROM..."));
-    //     // DisableInterrupts();
-        init_internal_eeprom(INITIAL_MEMORY_STATE_BYTE);
-    //     // EnableInterrupts();
-        // log.println(F("Ok"));
-    //                                                                                 //
-        // log.print(F("Reset ext EEPROM..."));
-    //     // DisableInterrupts();
-        init_external_eeprom(INITIAL_MEMORY_STATE_BYTE); // sets all of memory = INITIAL_MEMORY_STATE_BYTE, 0xFF/255/0b11111111
-    //     // EnableInterrupts();
-        // log.println(F("Ok"));
-    //                                                                                 //
-        // log.print(F("Set Init Flag..."));
-    //     // DisableInterrupts();
-        writeResetFlag(MEMORY_INITIALIZED_FLAG);                                    // setting the last byte in external EEprom to 0x01 signals that all other 
-    //     // EnableInterrupts();
-    //
+        log.print(F("Factory Reset..."));
+        storage_factory_reset(log);
         log.println(F("Ok"));
-    //     // if (getResetFlag != MEMORY_INITIALIZED_FLAG) {
-    //     //     log.println(F("Fail update Reset Flag"));
-    //     // }
     } else {
         log.println(F("EEPROM is Ok"));
     }
 
     acctCount = 0;
+    acctPosition = 0;
 
     acctCount = count_accounts();
     log.print(acctCount);
     log.println(F(" accounts"));
-    //
-    // {
-    //     Account acc = {"t1", "u1", "p1"};
-    //     log.println(acc.name);
-    //     ext_eeprom_add(acc);
-    // }
-    // {
-    //     Account acc = {"t2", "u2", "p2"}; 
-    //     log.println(acc.name);
-    //     ext_eeprom_add(acc);
-    // }
-    //
-    // acctCount = count_accounts();
-    // log.print(acctCount);
-    // log.println(F(" accounts"));
 
-//
 //     // if (getResetFlag != MEMORY_INITIALIZED_FLAG) {                                // if memory has never been initialized, initialize it.
 //     //     loginFailures = MAX_LOGIN_FAILURES + 1;                                     // so that a condition inside of EVENT_RESET evaluates to true and the reset 
 //     //                                                                                 // (25LC256 comes with 0x00 in every address space)
@@ -331,20 +292,47 @@ ext_eeprom_del(const char* acc_name)
     return false;
 }
 
-void writeAllToEEProm(uint8_t *accountName, 
-                      uint8_t *username, 
-                      uint8_t *password, 
-                      uint8_t pos)        {                                     // used by delete account and factory reset.
-  eeprom_write_bytes(GET_ADDR_ACCT(pos), accountName, ACCOUNT_SIZE);
-  eeprom_write_bytes(GET_ADDR_USER(pos), username, USERNAME_SIZE);
-  eeprom_write_bytes(GET_ADDR_PASS(pos), password, PASSWORD_SIZE);
-}
-
 uint8_t 
 ext_eeprom_get_num_of_accounts(void)
 {
     return acctCount;
 }
+
+
+bool
+ext_eeprom_get_next(const uint8_t from, Account& acc, uint8_t &idx)
+{
+    uint16_t addr = MIN_AVAIL_ADDR;
+
+    for (uint8_t i = from + 1; i < CREDS_ACCOMIDATED; ++i) {
+        addr = GET_ADDR_ACCT(i);
+
+        if (!is_free_account_addr(addr)) {
+            idx = i;
+            ext_eeprom_get(i, acc);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+ext_eeprom_get_prev(const uint8_t from, Account& acc, uint8_t &idx)
+{
+    uint16_t addr = MIN_AVAIL_ADDR;
+
+    for (uint8_t i = from >= 1 ? from - 1 : 0; i >= 0; --i) {
+        addr = GET_ADDR_ACCT(i);
+
+        if (!is_free_account_addr(addr)) {
+            idx = i;
+            ext_eeprom_get(i, acc);
+            return true;
+        }
+    }
+    return false;
+}
+
 
 bool
 storage_factory_reset(Print &log)

@@ -3,7 +3,10 @@
 #ifndef __KEYBOARD_HPP__
 #define __KEYBOARD_HPP__
 
-void keyboard_setup(void);
-void keyboard_loop_step(void);
+#include <inttypes.h>
+
+void keyboard_type_string(const char* s);
+void keyboard_push_button(const uint8_t key_code);
+void keyboard_push_tab();
 
 #endif // !__KEYBOARD_HPP__

@@ -3,7 +3,7 @@
 
 struct Account;
 
-void cli_init(struct Account *pacct, const unsigned int acct_size);
+void cli_init();
 void cli_loop_step();
 
 void cli_on();

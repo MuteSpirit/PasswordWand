@@ -1,72 +1,34 @@
 #include <Keyboard.h>                                                           // for simulating a USB keyboard and sending output to it
                                                                                 //
-#include "model.hpp"
-#include "ext_storage.hpp"
 #include "board.hpp"
 
-#define TAB_KEY                   KEY_TAB                                       // TAB key is ascii 0x2b (not 0x09) or 0x2b, 0xB3; KEY_TAB from Keyboard.h, 0xB3
-                                                                                //
-uint8_t keyboardFlag;                                                           // flag indicating if we're using the keyboard to edit creds
-
-
-bool send_username(void);
-void send_tab(void);
-bool send_password(void);
-
-
 void
-keyboard_setup(void)
+keyboard_type_string(const char* s)
 {
-    pinMode(BTN_NEXT_PIN, INPUT_PULLUP);
-    pinMode(BTN_PREV_PIN, INPUT_PULLUP);
-    pinMode(BTN_ENTER_PIN, INPUT_PULLUP);
+// for Uno it cannot be even compiled because that board cannot emulate keyboard
+#ifndef BOARD_ARDUINO_UNO
+    Keyboard.begin();
+    Keyboard.print(s);
+    Keyboard.end();
+#endif
 }
 
+/// @param key_code - keyboard code from <Keyboard.h>
 void
-keyboard_loop_step(void)
+keyboard_push_button(const uint8_t key_code)
 {
-    if (LOW == digitalRead(BTN_NEXT_PIN)) {
-        send_username();
-    } 
-
-    if (LOW == digitalRead(BTN_PREV_PIN)) {
-        send_password();
-    }
-
-    if (LOW == digitalRead(BTN_ENTER_PIN)) {
-        send_tab();
-    }
+// for Uno it cannot be even compiled because that board cannot emulate keyboard
+#ifndef BOARD_ARDUINO_UNO
+    Keyboard.begin();                                                             // TODO: can we do a <CTL><A> <BS> here first?  That will clear out pre-populated usernames.
+    Keyboard.press(key_code);                                                      // send <TAB>
+    Keyboard.release(key_code);
+    Keyboard.end();
+#endif
 }
 
-// bool
-// send_username(void)
-// {
-//     Account acc;
-//     if (!ext_eeprom_get(current_account_idx(), acc)) {
-//         return false;
-//     }
-//     Keyboard.begin();                                                             // TODO: can we do a <CTL><A> <BS> here first?  That will clear out pre-populated usernames.
-//     Keyboard.print(acc.username);                                                 // type the username through the keyboard, no carriage return
-//     Keyboard.end();
-// }
-//
-// void
-// send_tab(void)
-// {
-//     Keyboard.begin();                                                             // TODO: can we do a <CTL><A> <BS> here first?  That will clear out pre-populated usernames.
-//     Keyboard.press(TAB_KEY);                                                      // send <TAB>
-//     Keyboard.release(TAB_KEY);
-//     Keyboard.end();
-// }
-//
-// bool
-// send_password(void)
-// {                                                           // TODO: can we do a <CTL><A> <BS> here first? That will clear out pre-populated passwords.
-//     Account acc;
-//     if (!ext_eeprom_get(current_account_idx(), acc)) {
-//         return false;
-//     }
-//     Keyboard.begin();                                                             // TODO: can we do a <CTL><A> <BS> here first?  That will clear out pre-populated usernames.
-//     Keyboard.print(acc.username);                                                 // type the username through the keyboard, no carriage return
-//     Keyboard.end();
-// }
+/// TAB key is ascii 0x2b (not 0x09) or 0x2b, 0xB3; KEY_TAB from Keyboard.h, 0xB3
+void
+keyboard_push_tab(void)
+{
+    keyboard_push_button(KEY_TAB);
+}

@@ -4,11 +4,12 @@
 #define __DISPLAY_HPP__
 
 #include <Print.h>
+#include <GyverOLED.h>
 
 struct Account;
 
-Print& display_init(Account accts[], const unsigned int size);
-void print_welcome_oled(void);
-void menu_loop_step(void);
+Print& display_init();
+
+typedef GyverOLED<SSD1306_128x64, OLED_NO_BUFFER> Display;
 
 #endif // __DISPLAY_HPP__

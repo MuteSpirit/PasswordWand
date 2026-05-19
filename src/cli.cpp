@@ -14,12 +14,19 @@ const char * const ls_cmd_usage  PROGMEM = "Usage: ls. Print exist accounts.";
 // Use such long name and not use aliases to avoid mistake during this command usage
 const char * const factory_cmd_usage PROGMEM = "Usage: factory_reset. Perform factory reset. !!! All accounts and settings will be lost!!!";
 
+const char * const usage[] = {
+    add_cmd_usage,
+    del_cmd_usage,
+    ls_cmd_usage,
+    factory_cmd_usage
+};
+
+#define USAGE_SIZE  (sizeof(usage) / sizeof(usage[0]))
+
 // TODO: SimpleCLI(int commandQueueSize = 10, int errorQueueSize = 10); 
 SimpleCLI cli;
 
-struct Account *accts = NULL;
-unsigned int accts_size = 0;
-
+void print_usage(cmd *pcmd);
 void add_account(cmd *pcmd);
 void del_account(cmd *pcmd);
 void ls_accounts(cmd *pcmd);
@@ -28,9 +35,9 @@ void factory_reset(cmd *pcmd);
 void error_cb(cmd_error* e);
 
 void
-cli_init(struct Account *pacct, const unsigned int size) {
-    accts = pacct;
-    accts_size = size;
+cli_init()
+{
+    cli.addCommand("h/e/l/p", print_usage);
 
     Command add_cmd = cli.addBoundlessCommand("a/d/d", add_account);
     add_cmd.setDescription(add_cmd_usage);
@@ -51,25 +58,23 @@ cli_init(struct Account *pacct, const unsigned int size) {
 
     cli.setOnError(error_cb);
 
-    // TODO: enable explicitly only
+    // TODO: disable by default
     // cli_off();
     cli_on();
 }
 
 void cli_loop_step() {
-    // TODO: use next API to enable CLI only after authentication and disable after expiration nonactive timer
-    // cli.pause();
-    // cli.unpause();
-    if (Serial.available()) {
-        String input = Serial.readStringUntil('\n');
-
-        if (input.length() > 0) {
-            Serial.print("# ");
-            Serial.println(input);
-
-            cli.parse(input);
-        }
-    }
+    // TODO: decide is it needed or not
+    // if (Serial.available()) {
+    //     String input = Serial.readStringUntil('\n');
+    //
+    //     if (input.length() > 0) {
+    //         Serial.print("# ");
+    //         Serial.println(input);
+    //
+    //         cli.parse(input);
+    //     }
+    // }
 }
 
 void
@@ -85,6 +90,14 @@ error_cb(cmd_error* e) {
     Serial.print(cmdError.getCommand().toString());
     Serial.println(F("\"?"));
   }
+}
+
+void
+print_usage(cmd *pcmd)
+{
+    for (uint8_t i = 0; i < USAGE_SIZE; ++i) {
+        Serial.println(usage[i]);
+    }
 }
 
 void
