@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <EEPROM.h>                                                             // for reading and writing AtMega32u4 internal EEprom
+//#include <EEPROM.h>                                                             // for reading and writing AtMega32u4 internal EEprom
 #include <SHA256.h>                                                             // for hashing the master password
 #include <AES.h>                                                                // for encrypting credentials
 
@@ -84,4 +84,3 @@ void setCredSalt(uint8_t *credSalt, uint8_t size) {
     credSalt[i] = random(0,255);                                                
   }
 }
-

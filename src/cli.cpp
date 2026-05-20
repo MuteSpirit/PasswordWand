@@ -95,6 +95,7 @@ error_cb(cmd_error* e) {
 void
 print_usage(cmd *pcmd)
 {
+    (void)(pcmd);
     for (uint8_t i = 0; i < USAGE_SIZE; ++i) {
         Serial.println(usage[i]);
     }

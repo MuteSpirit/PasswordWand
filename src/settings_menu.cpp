@@ -63,24 +63,31 @@ void
 SettingsMenu::activate()
 {
     menu_.showMenu(true);
-    set_button_callback(DeviceButton::button_circle, select_item_cb, &menu_);
+    set_button_callback(DeviceButton::button_circle, exec_item_cb, &menu_);
 
     set_button_callback(DeviceButton::button_square, select_prev_item, &menu_);
     set_button_callback(DeviceButton::button_cross, select_next_item, &menu_);
+
+    set_rotate_callback(select_item_cb, &menu_);
 }
 
 void
 SettingsMenu::deactivate()
 {
     menu_.showMenu(false);
-    set_button_callback(DeviceButton::button_circle, set_button_callback, NULL);
+    set_button_callback(DeviceButton::button_circle, stub_btn_cb, NULL);
 
-    set_button_callback(DeviceButton::button_square, set_button_callback, NULL);
-    set_button_callback(DeviceButton::button_cross, set_button_callback, NULL);
+    set_button_callback(DeviceButton::button_square, stub_btn_cb, NULL);
+    set_button_callback(DeviceButton::button_cross, stub_btn_cb, NULL);
+
+    set_rotate_callback(stub_rotate_cb, NULL);
 }
 
 void 
 menu_item_cb(const int index, const void* val, const byte valType) {
+    (void)(val);
+    (void)(valType);
+
     switch (index) {
         case 2: // factory reset
             oled.print(F("Reseting..."));
