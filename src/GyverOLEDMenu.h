@@ -318,14 +318,18 @@ private:
 // =================================================================================================================================
 
 
-template< uint16_t _MS_SIZE, typename TGyverOLED >
+template< int _MS_SIZE, typename TGyverOLED >
 class OledMenu {
 public:
   byte currentPage = 1;
   boolean isMenuShowing = false;
   boolean cbImmediate = false;
 
-  OledMenu(const TGyverOLED* oled): _oled((TGyverOLED*)oled)  {}
+  OledMenu(const TGyverOLED* oled)
+      : _oled((TGyverOLED*)oled)
+  {
+      static_assert(_MS_SIZE > 0, "Amount of menu item MUST be more then 0");
+  }
 
   // val
 
