@@ -6,7 +6,7 @@
 #include <Print.h>
 #include <inttypes.h>
 
-void ext_storage_init(Print& log);
+void ext_storage_setup(Print& log);
 
 struct Account;
 

@@ -57,24 +57,19 @@ cli_init()
     factory_cmd.setDescription(factory_cmd_usage);
 
     cli.setOnError(error_cb);
-
-    // TODO: disable by default
-    // cli_off();
-    cli_on();
 }
 
 void cli_loop_step() {
-    // TODO: decide is it needed or not
-    // if (Serial.available()) {
-    //     String input = Serial.readStringUntil('\n');
-    //
-    //     if (input.length() > 0) {
-    //         Serial.print("# ");
-    //         Serial.println(input);
-    //
-    //         cli.parse(input);
-    //     }
-    // }
+    if (Serial.available()) {
+        String input = Serial.readStringUntil('\n');
+
+        if (input.length() > 0) {
+            Serial.print("# ");
+            Serial.println(input);
+
+            cli.parse(input);
+        }
+    }
 }
 
 void

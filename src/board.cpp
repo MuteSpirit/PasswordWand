@@ -1,10 +1,15 @@
 #include <inttypes.h>
 #include <Arduino.h>
+#include <RotaryEncoder.h>
 
 #include "board.hpp"
 
 // Use OLED_NO_BUFFER to keep RAM for another code
 Display oled;
+
+EEPROM_SPI_WE eep(csPin, wpPin, 1000000);
+
+RotaryEncoder rotaryEncoder(ROTARY_DT_PIN, ROTARY_CLK_PIN/*, RotaryEncoder::LatchMode::TWO03*/);
 
 struct ButtonHook
 {
@@ -55,21 +60,39 @@ board_setup(void)
     pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
     pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);
     pinMode(BTN_CROSS_PIN, INPUT_PULLUP);
+    // RotaryEncoder lib configures pins itself
+    // pinMode(ROTARY_CLK_PIN, INPUT_PULLUP);
+    // pinMode(ROTARY_DT_PIN, INPUT_PULLUP);
 }
 
-void
+static void
 check_button(DeviceButton btn)
 {
     if (LOW == digitalRead(btn2pin(btn))) {
-        if (!btn_hooks[btn].cb) {
+        if (btn_hooks[btn].cb) {
             (*btn_hooks[btn].cb)(btn_hooks[btn].ctx);
         }
     } 
 }
 
+static void
+check_encoder(void)
+{
+    if (encoder_hook.cb) {
+        rotaryEncoder.tick();
+
+        int dir = (int)rotaryEncoder.getDirection();
+        if (0 != dir) {
+            (*encoder_hook.cb)(encoder_hook.ctx, dir);
+        }
+    }
+
+}
+
 void
 board_loop_step(void)
 {
+    check_encoder();
     check_button(button_square);
     check_button(button_triangle);
     check_button(button_circle);

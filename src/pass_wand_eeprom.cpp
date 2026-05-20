@@ -1,14 +1,6 @@
-#include <EEPROM_SPI_WE.h>
-
 #include "pass_wand_eeprom.hpp"
 #include "layout.hpp"
-
-
-// for Arduino Uno
-const int csPin PROGMEM = PD5;
-const int wpPin PROGMEM = 999; /* fake. On board it's pulled up to 5V */
-
-EEPROM_SPI_WE eep(csPin, wpPin, 1000000);
+#include "board.hpp"
 
 bool
 eeprom_is_addr_ok(const uint32_t addr) {

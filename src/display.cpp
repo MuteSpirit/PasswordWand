@@ -6,17 +6,26 @@
 #include "keyboard.hpp"
 #include "accounts_menu.hpp"
 #include "settings_menu.hpp"
+#include "board.hpp"
 
 AccountsMenu accMenu(oled);
-SettingsMenu settingsMenu;
+SettingsMenu settingsMenu(oled);;
 
 void switch_to_settings_menu(void *ctx);
 void switch_to_accounts_menu(void *ctx);
 
-Print&
-display_init()
+void
+display_setup(void)
 {
     oled.init();
+
+    oled.clear();
+    oled.home();
+}
+
+void
+menu_setup(void)
+{
     oled.clear();
     oled.home();
 
@@ -24,8 +33,6 @@ display_init()
     settingsMenu.init();
 
     switch_to_accounts_menu(NULL);
-
-    return oled;
 }
 
 void
@@ -34,10 +41,8 @@ switch_to_settings_menu(void *ctx)
     (void)(ctx);
 
     accMenu.deactivate();
-    oled.clear();
 
     settingsMenu.activate();
-    oled.update();
 
     set_button_callback(DeviceButton::button_triangle, switch_to_accounts_menu, NULL);
 }
@@ -48,10 +53,8 @@ switch_to_accounts_menu(void *ctx)
     (void)(ctx);
 
     settingsMenu.deactivate();
-    oled.clear();
 
     accMenu.activate();
-    oled.update();
 
     set_button_callback(DeviceButton::button_triangle, switch_to_settings_menu, NULL);
 }

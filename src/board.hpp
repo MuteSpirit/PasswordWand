@@ -3,7 +3,13 @@
 #ifndef __BOARD_HPP__
 #define __BOARD_HPP__
 
+// Using Uno only for develop part of features.
+// Arduino Pro Micro is target device.
+#define BOARD_ARDUINO_UNO
+
 #include <GyverOLED.h>
+#include <SPI.h>
+#include <EEPROM_SPI_WE.h>
 
 #ifdef BOARD_ARDUINO_UNO
 
@@ -12,14 +18,28 @@
 #define BTN_CIRCLE_PIN    7
 #define BTN_CROSS_PIN     8
 
-#else
+#define csPin PD5
+#define wpPin 999 /* fake. On board it's pulled up to 5V */
+
+#define ROTARY_DT_PIN  A2
+#define ROTARY_CLK_PIN A3
+
+#else // for AtMega32u4 / Arduino Pro Mini
 
 #define BTN_SQUARE_PIN    2
 #define BTN_TRIANGLE_PIN  4
 #define BTN_CIRCLE_PIN    7
 #define BTN_CROSS_PIN     8
 
+#define ROTARY_CLK_PIN 9
+#define ROTARY_DT_PIN  8
+                                                                                //
 #endif // BOARD_ARDUINO_UNO
+
+
+
+extern EEPROM_SPI_WE eep;
+
 
 /// There are 4 buttons on the device with geometric figures on them:
 enum DeviceButton

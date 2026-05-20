@@ -1,14 +1,13 @@
 #include <avr/pgmspace.h>
 #include <Arduino.h>
-#include <SPI.h>
 #include <EEPROM.h>                                                             // for reading and writing AtMega32u4 internal EEprom
-#include <EEPROM_SPI_WE.h>
 #include <string.h>
 
 #include "ext_storage.hpp"
 #include "layout.hpp"
 #include "pass_wand_eeprom.hpp"
 #include "model.hpp"
+#include "board.hpp"
 
 #define ADC_READ_PIN              18                                            // we read the voltage from this floating pin to seed the random number generator, don't ground it!
 
@@ -31,7 +30,7 @@ uint8_t acctCount = 0;                                                          
 #define BASIC_STR(x) #x
 #define STR(x) BASIC_STR(x)
 
-void ext_storage_init(Print& log) {
+void ext_storage_setup(Print& log) {
     // log.print(F("Init ext EEPROM..."));
     if (eep.init()){
         // TODO: statically check next
@@ -53,12 +52,11 @@ void ext_storage_init(Print& log) {
         log.println(F("EEPROM is Ok"));
     }
 
-    acctCount = 0;
     acctPosition = 0;
-
     acctCount = count_accounts();
+
     log.print(acctCount);
-    log.println(F(" accounts"));
+    log.println(F(" account(s)"));
 }
 
 static bool
@@ -80,9 +78,10 @@ uint8_t
 count_accounts()
 {
     uint8_t c = 0;
-    uint8_t pos = 0;
-    uint32_t addr = GET_ADDR_ACCT(pos);
-    for (; addr < GET_ADDR_SETTINGS; addr = GET_ADDR_ACCT(++pos)) {
+    uint32_t addr = 0;
+    for (uint8_t idx = 0; idx < CREDS_ACCOMIDATED; ++idx) {
+        addr = GET_ADDR_ACCT(idx);
+
         if (!is_free_account_addr(addr)) {
             ++c;
         }
@@ -214,20 +213,17 @@ ext_eeprom_get_next(const uint8_t from, Account& acc, uint8_t &idx)
 bool
 ext_eeprom_get_prev(const uint8_t from, Account& acc, uint8_t &idx)
 {
-    uint32_t addr = MIN_AVAIL_ADDR;
-
     for (uint8_t i = from; i > 0; --i) {
-        addr = GET_ADDR_ACCT(i > 0 ? i - 1 : 0);
+        uint8_t pos = i > 0 ? i - 1 : 0;
 
-        if (!is_free_account_addr(addr)) {
-            idx = i;
-            ext_eeprom_get(i, acc);
+        if (!is_free_account_addr(GET_ADDR_ACCT(pos))) {
+            idx = pos;
+            ext_eeprom_get(pos, acc);
             return true;
         }
     }
     return false;
 }
-
 
 bool
 storage_factory_reset(Print &log)
@@ -259,11 +255,7 @@ get_free_account_pos(uint8_t &pos) {
 bool
 ext_eeprom_get(const uint8_t idx, Account& acc)
 {
-    if (INITIAL_MEMORY_STATE_BYTE == read_eeprom_byte(GET_ADDR_ACCT(idx))) {
-        acc.name[0] = NULL_TERM;
-        acc.username[0] = NULL_TERM;
-        acc.password[0] = NULL_TERM;
-
+    if (is_free_account_addr(GET_ADDR_ACCT(idx))) {
         return false;
     }
 

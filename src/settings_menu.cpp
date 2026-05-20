@@ -14,7 +14,8 @@ PassWandOLEDMenu menu_(&oled);
 
 void menu_item_cb(const int index, const void* val, const byte valType);
 
-SettingsMenu::SettingsMenu()
+SettingsMenu::SettingsMenu(Display &oled)
+    : oled_(oled)
 {
     // Hide menu here to be able print debug messages on display
     menu_.showMenu(false);
@@ -62,13 +63,15 @@ exec_item_cb(void *ctx)
 void
 SettingsMenu::activate()
 {
-    menu_.showMenu(true);
     set_button_callback(DeviceButton::button_circle, exec_item_cb, &menu_);
 
     set_button_callback(DeviceButton::button_square, select_prev_item, &menu_);
     set_button_callback(DeviceButton::button_cross, select_next_item, &menu_);
 
     set_rotate_callback(select_item_cb, &menu_);
+    oled_.home();
+    menu_.showMenu(true);
+    oled_.update();
 }
 
 void
@@ -81,6 +84,7 @@ SettingsMenu::deactivate()
     set_button_callback(DeviceButton::button_cross, stub_btn_cb, NULL);
 
     set_rotate_callback(stub_rotate_cb, NULL);
+    oled_.clear();
 }
 
 void 
