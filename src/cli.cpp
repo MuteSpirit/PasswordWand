@@ -1,6 +1,5 @@
 #include <avr/pgmspace.h>
 
-#define ARDUINO
 #include <SimpleCLI.h>
 #include <c/arg.h>
 
