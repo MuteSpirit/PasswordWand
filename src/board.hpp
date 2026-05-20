@@ -7,7 +7,9 @@
 // Arduino Pro Micro is target device.
 #define BOARD_ARDUINO_UNO
 
+#define USE_MICRO_WIRE // for decrease size of code
 #include <GyverOLED.h>
+
 #include <SPI.h>
 #include <EEPROM_SPI_WE.h>
 

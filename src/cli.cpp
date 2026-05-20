@@ -1,12 +1,25 @@
 #include <avr/pgmspace.h>
+
+#define ARDUINO
 #include <SimpleCLI.h>
+#include <c/arg.h>
 
 #include "cli.hpp"
 #include "model.hpp"
 #include "ext_storage.hpp"
 #include "layout.hpp"
 
+/******************************************************************************/
+// from SimpleCLI/c/arg.c
+const char* arg_get_value(arg* a) {
+    if (a) {
+        if (a->val) return a->val;
+        if (a->default_val) return a->default_val;
+    }
+    return "";
+}
 
+/******************************************************************************/
 const char * const add_cmd_usage PROGMEM = "Usage: add <username> [password]. Add new account. If \"password\" is absent it'll be generated";
 const char * const del_cmd_usage PROGMEM = "Usage: rm <username>. Delete account.";
 const char * const ls_cmd_usage  PROGMEM = "Usage: ls. Print exist accounts.";
@@ -72,19 +85,26 @@ void cli_loop_step() {
     }
 }
 
+/// Print error message to user if he made a mistake
+/// If try to get human readable error message via getString() method then sketch size increases too much
 void
-error_cb(cmd_error* e) {
-  CommandError cmdError(e);
-
-  Serial.print(F("ERROR: "));
-  Serial.println(cmdError.toString());
-
-  // Print command usage
-  if (cmdError.hasCommand()) {
-    Serial.print(F("Did you mean \""));
-    Serial.print(cmdError.getCommand().toString());
-    Serial.println(F("\"?"));
-  }
+error_cb(cmd_error* e)
+{
+    CommandError ce(e);
+    if (ce.hasCommand()) {
+        Command c = ce.getCmd();
+        if (c.equals("ls")) {
+            Serial.println(ls_cmd_usage);
+        } else if (c.equals("rm") || c.equals("del") ) {
+            Serial.println(del_cmd_usage);
+        } else if (c.equals("add")) {
+            Serial.println(add_cmd_usage);
+        } else if (c.equals("factory_reset")) {
+            Serial.println(factory_cmd_usage);
+        }
+    } else {
+        print_usage(NULL);
+    }
 }
 
 void
@@ -101,32 +121,30 @@ add_account(cmd *pcmd)
 {
     Command add_cmd(pcmd);
 
-    // TODO: check "isSet" flag of arguments
     Argument name_arg = add_cmd.getArgument(0);
-    if (!name_arg.isSet()) {
-        Serial.println(F("FAIL: argument <name> is absent"));
-        return;
-    }
-
+    // if (!name_arg.isSet()) {
+    //     Serial.println(F("FAIL: argument <name> is absent"));
+    //     return;
+    // }
+    //
     Argument username_arg = add_cmd.getArgument(1);
-    if (!username_arg.isSet()) {
-        Serial.println(F("FAIL: argument <username> is absent"));
-        return;
-    }
-
+    // if (!username_arg.isSet()) {
+    //     Serial.println(F("FAIL: argument <username> is absent"));
+    //     return;
+    // }
+    //
     Argument password_arg = add_cmd.getArgument(2);
-    // TODO: generate password if user did not pass it
-
-    if (ext_eeprom_is_exist(name_arg.getValue().c_str())) {
+    // // TODO: generate password if user did not pass it
+    //
+    if (ext_eeprom_is_exist(arg_get_value(name_arg.getPtr()))) {
         Serial.println(F("FAIL: Account with such name is already exist"));
         return;
     }
 
-
     Account acc;
-    strncpy(acc.name, name_arg.getValue().c_str(), sizeof(acc.name));
-    strncpy(acc.username, username_arg.getValue().c_str(), sizeof(acc.username));
-    strncpy(acc.password, password_arg.getValue().c_str(), sizeof(acc.password));
+    strncpy(acc.name, arg_get_value(name_arg.getPtr()), sizeof(acc.name));
+    strncpy(acc.username, arg_get_value(username_arg.getPtr()), sizeof(acc.username));
+    strncpy(acc.password, arg_get_value(password_arg.getPtr()), sizeof(acc.password));
 
     if (!ext_eeprom_add(acc)) {
         Serial.println(F("FAIL: No space"));
@@ -144,7 +162,7 @@ del_account(cmd *pcmd)
         Serial.println(F("FAIL: argument <name> is absent"));
     }
 
-    if (!ext_eeprom_del(name_arg.getValue().c_str())) {
+    if (!ext_eeprom_del(arg_get_value(name_arg.getPtr()))) {
         Serial.println(F("FAIL"));
     } else {
         Serial.println(F("OK"));
