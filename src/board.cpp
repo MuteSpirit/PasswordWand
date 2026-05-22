@@ -4,17 +4,16 @@
 
 #include "board.hpp"
 
-// Use OLED_NO_BUFFER to keep RAM for another code
-Display oled;
+EEPROM_SPI_WE eep(EXT_EEPROM_CS_PIN, EXT_EEPROM_WP_PIN, 1000000);
 
-EEPROM_SPI_WE eep(csPin, wpPin, 1000000);
-
-RotaryEncoder rotaryEncoder(ROTARY_DT_PIN, ROTARY_CLK_PIN/*, RotaryEncoder::LatchMode::TWO03*/);
+RotaryEncoder rotaryEncoder(ROTARY_CLK_PIN, ROTARY_DT_PIN);
 
 struct ButtonHook
 {
     ButtonCallback cb;
     void *ctx;
+
+    bool push_happen_;
 };
 
 ButtonHook btn_hooks[DeviceButton::num_of_buttons];
@@ -27,7 +26,8 @@ struct RotateHook
 
 RotateHook encoder_hook;
 
-uint8_t btn2pin(DeviceButton btn)
+uint8_t
+btn2pin(DeviceButton btn)
 {
     switch (btn) {
         case DeviceButton::button_square: return BTN_SQUARE_PIN;
@@ -36,6 +36,19 @@ uint8_t btn2pin(DeviceButton btn)
         case DeviceButton::button_cross: return BTN_CROSS_PIN;
         default:
            return DeviceButton::num_of_buttons;
+    }
+}
+
+const char*
+btn2name(DeviceButton btn)
+{
+    switch (btn) {
+        case DeviceButton::button_square: return "SQUARE";
+        case DeviceButton::button_triangle: return "TRIANGLE";
+        case DeviceButton::button_circle: return "CIRCLE";
+        case DeviceButton::button_cross: return "CROSS";
+        default:
+           return "UNKNOWN";
     }
 }
 
@@ -56,11 +69,28 @@ set_rotate_callback(RotateCallback cb, void *ctx)
 void
 board_setup(void)
 {
-    pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
-    pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
-    pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);
-    pinMode(BTN_CROSS_PIN, INPUT_PULLUP);
-    // RotaryEncoder lib configures pins itself
+    for (uint8_t i = DeviceButton::button_square; i < DeviceButton::num_of_buttons; ++i) {
+        btn_hooks[i].cb = NULL;
+        btn_hooks[i].ctx = NULL;
+        btn_hooks[i].push_happen_ = false;
+    }
+
+    // pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
+    // pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
+    // pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);
+    // pinMode(BTN_CROSS_PIN, INPUT_PULLUP);
+
+    // Use external pullup resistors
+    pinMode(BTN_SQUARE_PIN, INPUT);
+    pinMode(BTN_TRIANGLE_PIN, INPUT);
+    pinMode(BTN_CIRCLE_PIN, INPUT);
+    pinMode(BTN_CROSS_PIN, INPUT);
+
+    // EEPROM_SPI_WE lib sets CS EEPROM pin to OUTPU itself
+    // pinMode(EXT_EEPROM_CS_PIN, OUTPUT);
+    // digitalWrite(EXT_EEPROM_CS_PIN, HIGH); // Start with EEPROM not selected
+
+    // RotaryEncoder lib configures encoder pins itself
     // pinMode(ROTARY_CLK_PIN, INPUT_PULLUP);
     // pinMode(ROTARY_DT_PIN, INPUT_PULLUP);
 }
@@ -68,11 +98,30 @@ board_setup(void)
 static void
 check_button(DeviceButton btn)
 {
-    if (LOW == digitalRead(btn2pin(btn))) {
-        if (btn_hooks[btn].cb) {
+    // Physycal debounce using RC-filter did not help with simplest buttons I have
+    // Let's try to react only on changing to sequence of signals HIGH (by default) then LOW then HIGH again
+
+    if (NULL == btn_hooks[btn].cb) {
+        return;
+    }
+
+    const uint8_t i = btn2pin(btn);
+    if (btn_hooks[i].push_happen_) {
+        if (HIGH == digitalRead(i)) {
+            Serial.print(btn2name(btn));
+            Serial.println(F(": release"));
+
+            btn_hooks[i].push_happen_ = false;
             (*btn_hooks[btn].cb)(btn_hooks[btn].ctx);
         }
-    } 
+    } else {
+        if (LOW == digitalRead(i)) {
+            Serial.print(btn2name(btn));
+            Serial.println(F(": push"));
+
+            btn_hooks[i].push_happen_ = true;
+        }
+    }
 }
 
 static void

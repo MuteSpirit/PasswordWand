@@ -13,30 +13,63 @@
 #include <SPI.h>
 #include <EEPROM_SPI_WE.h>
 
-#ifdef BOARD_ARDUINO_UNO
+// #if defined(ARDUINO_AVR_UNO)
+//
+// // Buttons
+// #define BTN_SQUARE_PIN    2
+// #define BTN_TRIANGLE_PIN  4
+// #define BTN_CIRCLE_PIN    7
+// #define BTN_CROSS_PIN     8
+//
+// // 25LC256 EEPROM chip
+// #define EXT_EEPROM_CS_PIN    5     // 1. Chip Select Pin. On Uno - PD5 / D5 / 5
+// #define EXT_EEPROM_CO_PIN    12    // 2. Slave Out. To MISO on board
+// #define EXT_EEPROM_WP_PIN    999   // 3. Write Protect Pin. fake value. On board it's pulled up to 5V
+// #define EXT_EEPROM_GND_PIN   GND   // 4. Ground
+// #define EXT_EEPROM_SI_PIN    MOSI  // 5. Slave Input. To MOSI on board, On Uno - 11 / MOSI
+// #define EXT_EEPROM_SCK_PIN   SCK   // 6. SPI Clock. To SCK on board. On Uno - 13
+// #define EXT_EEPROM_HOLD_PIN  HOLD  // 7. Hold pin, active-low, pauses the data transfer.
+// #define EXT_EEPROM_VCC_PIN   VCC   // 8. Power 
+//
+// // Rotary Encoder
+// #define ROTARY_CLK_PIN A2
+// #define ROTARY_DT_PIN  A3
+//
+// // OLED Display
+// #define OLED_SCK_PIN    A5
+// #define OLED_SDA_PIN    A4
+// #define OLED_I2C_ADDR   0x3C
+//
+// #elif defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO)
 
-#define BTN_SQUARE_PIN    2
-#define BTN_TRIANGLE_PIN  4
-#define BTN_CIRCLE_PIN    7
-#define BTN_CROSS_PIN     8
+// Buttons
+#define BTN_SQUARE_PIN    8  // Pin 4 should be here, but is broken on alone board I have
+#define BTN_TRIANGLE_PIN  5
+#define BTN_CIRCLE_PIN    6
+#define BTN_CROSS_PIN     7
 
-#define csPin PD5
-#define wpPin 999 /* fake. On board it's pulled up to 5V */
+// 25LC256 EEPROM chip
+#define EXT_EEPROM_CS_PIN    10    // 1. Chip Select Pin.
+#define EXT_EEPROM_CO_PIN    MISO  // 2. Slave Out. To MISO on board. On Pro Micro - 14
+#define EXT_EEPROM_WP_PIN    999   // 3. Write Protect Pin. fake value. On board it's pulled up to 5V
+#define EXT_EEPROM_GND_PIN   GND   // 4. Ground
+#define EXT_EEPROM_SI_PIN    MOSI  // 5. Slave Input. To MOSI on board. On Pro Mini - 16
+#define EXT_EEPROM_SCK_PIN   SCK   // 6. SPI Clock. To SCK on board, On Pro Mini - 15
+#define EXT_EEPROM_HOLD_PIN  VCC   // 7. Hold pin, active-low, pauses the data transfer.
+#define EXT_EEPROM_VCC_PIN   VCC   // 8. Power 
 
-#define ROTARY_DT_PIN  A2
-#define ROTARY_CLK_PIN A3
+// Rotary Encoder
+#define ROTARY_CLK_PIN   8
+#define ROTARY_DT_PIN    9
 
-#else // for AtMega32u4 / Arduino Pro Mini
+// OLED Display
+#define OLED_SCK_PIN    3
+#define OLED_SDA_PIN    2
+#define OLED_I2C_ADDR   0x3C
 
-#define BTN_SQUARE_PIN    2
-#define BTN_TRIANGLE_PIN  4
-#define BTN_CIRCLE_PIN    7
-#define BTN_CROSS_PIN     8
-
-#define ROTARY_CLK_PIN 9
-#define ROTARY_DT_PIN  8
-                                                                                //
-#endif // BOARD_ARDUINO_UNO
+// #else
+// #error("Unknown board type")
+// #endif // ARDUINO_AVR_UNO
 
 
 
@@ -46,7 +79,7 @@ extern EEPROM_SPI_WE eep;
 /// There are 4 buttons on the device with geometric figures on them:
 enum DeviceButton
 {
-   button_square,
+   button_square = 0,
    button_triangle,
    button_circle,
    button_cross,
