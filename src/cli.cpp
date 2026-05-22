@@ -1,5 +1,4 @@
 #include <avr/pgmspace.h>
-
 #include <SimpleCLI.h>
 #include <c/arg.h>
 
@@ -7,6 +6,7 @@
 #include "model.hpp"
 #include "ext_storage.hpp"
 #include "layout.hpp"
+#include "version.hpp"
 
 /******************************************************************************/
 // from SimpleCLI/c/arg.c
@@ -110,6 +110,9 @@ void
 print_usage(cmd *pcmd)
 {
     (void)(pcmd);
+
+    print_welcome(Serial);
+
     for (uint8_t i = 0; i < USAGE_SIZE; ++i) {
         Serial.println(usage[i]);
     }
@@ -148,7 +151,7 @@ add_account(cmd *pcmd)
     if (!ext_eeprom_add(acc)) {
         Serial.println(F("FAIL: No space"));
     } else {
-        Serial.println(F("OK"));
+        Serial.println(F("Done"));
     }
 }
 
@@ -164,15 +167,15 @@ del_account(cmd *pcmd)
     if (!ext_eeprom_del(arg_get_value(name_arg.getPtr()))) {
         Serial.println(F("FAIL"));
     } else {
-        Serial.println(F("OK"));
+        Serial.println(F("Done"));
     }
 }
 
 void
 ls_accounts(__attribute__((unused)) cmd *pcmd) {
-    const uint8_t acc_size = ext_eeprom_get_num_of_accounts();
     uint8_t founded = 0;
     Account acc;
+    const uint8_t acc_size = ext_eeprom_get_num_of_accounts();
     for (unsigned int i = 0; founded < acc_size && i < CREDS_ACCOMIDATED; ++i) {
         if (!ext_eeprom_get(i, acc)) {
             continue;
@@ -182,6 +185,7 @@ ls_accounts(__attribute__((unused)) cmd *pcmd) {
         Serial.println(acc.username); 
         Serial.println(acc.password); 
     }
+    Serial.println(F("Done"));
 }
 
 void

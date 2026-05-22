@@ -7,5 +7,8 @@ print_welcome(Print& out)
   out.println(F(TITLE " v" VERSION));
   out.println(F("Credential manager"));
   out.println(F(AUTHOR));
-  out.println(__DATE__);
+
+  out.print(__DATE__);
+  out.print(F(" "));
+  out.println(__TIME__);
 }
