@@ -10,7 +10,9 @@
 
 /******************************************************************************/
 // from SimpleCLI/c/arg.c
-const char* arg_get_value(arg* a) {
+const char*
+arg_get_value(arg* a)
+{
     if (a) {
         if (a->val) return a->val;
         if (a->default_val) return a->default_val;
@@ -47,7 +49,7 @@ void factory_reset(cmd *pcmd);
 void error_cb(cmd_error* e);
 
 void
-cli_init()
+cli_init(const bool cli_turn_on)
 {
     cli.addCommand("h/e/l/p", print_usage);
 
@@ -69,6 +71,12 @@ cli_init()
     factory_cmd.setDescription(factory_cmd_usage);
 
     cli.setOnError(error_cb);
+
+    if (cli_turn_on) {
+        cli_on();
+    } else {
+        cli_off();
+    }
 }
 
 void cli_loop_step() {
@@ -89,6 +97,9 @@ void cli_loop_step() {
 void
 error_cb(cmd_error* e)
 {
+    if (!Serial) {
+        return;
+    }
     CommandError ce(e);
     if (ce.hasCommand()) {
         Command c = ce.getCmd();
@@ -200,11 +211,13 @@ factory_reset(cmd *pcmd) {
 }
 
 void
-cli_on() {
+cli_on()
+{
     cli.unpause();
 }
 
 void
-cli_off() {
+cli_off()
+{
     cli.pause();
 }

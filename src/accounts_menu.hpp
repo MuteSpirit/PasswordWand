@@ -6,19 +6,19 @@
 #include "model.hpp"
 #include "menu.hpp"
 #include "board.hpp"
+#include "settings.hpp"
 
 void send_username(void *ctx);
 void send_password(void *ctx);
 void navigate_accounts(void *ctx, int direction);
 
-
 class AccountsMenu : public Menu
 {
 public:
-    AccountsMenu(Display &);
+    AccountsMenu(Display &oled, volatile const Settings&);
     ~AccountsMenu() {};
 
-    virtual void init() override;
+    virtual void init(void (*switch_menu_cb)(void *ctx), void *swich_menu_ctx) override;
 
     virtual void activate() override;
     virtual void deactivate() override;
@@ -27,6 +27,7 @@ protected:
     Account acc_;
     uint8_t acc_idx_{0};
     Display& oled_;
+    volatile const Settings& settings_;
 
     void draw_acc();
 

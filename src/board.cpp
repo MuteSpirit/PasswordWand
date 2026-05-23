@@ -16,7 +16,7 @@ struct ButtonHook
     bool push_happen_;
 };
 
-ButtonHook btn_hooks[DeviceButton::num_of_buttons];
+volatile ButtonHook btn_hooks[DeviceButton::num_of_buttons];
 
 struct RotateHook
 {
@@ -24,7 +24,7 @@ struct RotateHook
     void *ctx;
 };
 
-RotateHook encoder_hook;
+volatile RotateHook encoder_hook;
 
 uint8_t
 btn2pin(DeviceButton btn)
@@ -70,22 +70,23 @@ void
 board_setup(void)
 {
     for (uint8_t i = DeviceButton::button_square; i < DeviceButton::num_of_buttons; ++i) {
-        btn_hooks[i].cb = NULL;
-        btn_hooks[i].ctx = NULL;
+        btn_hooks[i].cb = nullptr;
+        btn_hooks[i].ctx = nullptr;
         btn_hooks[i].push_happen_ = false;
     }
 
-    // pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
-    // pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
-    // pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);
-    // pinMode(BTN_CROSS_PIN, INPUT_PULLUP);
+    pinMode(4, INPUT_PULLUP); // DEBUG
+    pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
+    pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
+    pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);
+    pinMode(BTN_CROSS_PIN, INPUT_PULLUP);
 
     // Use external pullup resistors
-    pinMode(BTN_SQUARE_PIN, INPUT);
-    pinMode(BTN_TRIANGLE_PIN, INPUT);
-    pinMode(BTN_CIRCLE_PIN, INPUT);
-    pinMode(BTN_CROSS_PIN, INPUT);
-
+    // pinMode(BTN_SQUARE_PIN, INPUT);
+    // pinMode(BTN_TRIANGLE_PIN, INPUT);
+    // pinMode(BTN_CIRCLE_PIN, INPUT);
+    // pinMode(BTN_CROSS_PIN, INPUT);
+    //
     // EEPROM_SPI_WE lib sets CS EEPROM pin to OUTPU itself
     // pinMode(EXT_EEPROM_CS_PIN, OUTPUT);
     // digitalWrite(EXT_EEPROM_CS_PIN, HIGH); // Start with EEPROM not selected
@@ -108,16 +109,16 @@ check_button(DeviceButton btn)
     const uint8_t i = btn2pin(btn);
     if (btn_hooks[i].push_happen_) {
         if (HIGH == digitalRead(i)) {
-            Serial.print(btn2name(btn));
-            Serial.println(F(": release"));
+            // Serial.print(btn2name(btn));
+            // Serial.println(F(": release"));
 
             btn_hooks[i].push_happen_ = false;
             (*btn_hooks[btn].cb)(btn_hooks[btn].ctx);
         }
     } else {
         if (LOW == digitalRead(i)) {
-            Serial.print(btn2name(btn));
-            Serial.println(F(": push"));
+            // Serial.print(btn2name(btn));
+            // Serial.println(F(": push"));
 
             btn_hooks[i].push_happen_ = true;
         }
@@ -131,9 +132,7 @@ check_encoder(void)
         rotaryEncoder.tick();
 
         int dir = (int)rotaryEncoder.getDirection();
-        if (0 != dir) {
-            (*encoder_hook.cb)(encoder_hook.ctx, dir);
-        }
+        (*encoder_hook.cb)(encoder_hook.ctx, dir);
     }
 
 }
@@ -142,6 +141,7 @@ void
 board_loop_step(void)
 {
     check_encoder();
+
     check_button(button_square);
     check_button(button_triangle);
     check_button(button_circle);

@@ -3,7 +3,7 @@
 
 struct Account;
 
-void cli_init();
+void cli_init(const bool cli_turn_on);
 void cli_loop_step();
 
 void cli_on();

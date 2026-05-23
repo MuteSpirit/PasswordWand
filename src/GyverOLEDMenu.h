@@ -41,7 +41,7 @@
 #endif
 
 
-typedef void (*cbOnChange)(const int index, const void* val, const byte valType);
+typedef void (*cbOnChange)(void *ctx, const int index, const void* val, const byte valType);
 typedef boolean (*cbOnPrintOverride)(const int index, const void* val, const byte valType);
 
 extern const char* MENU_BOOLEAN_TEXT[];
@@ -273,12 +273,16 @@ public:
     _onPrintOverride = cb;
   }
 
+  void cbCtx(void *ctx) {
+    _cbCtx = ctx;
+  }
+
   void callCb() {
     if (_onChange == nullptr) {
       return;
     }
 
-    _onChange(_index, _val, _valType);
+    _onChange(_cbCtx, _index, _val, _valType);
   }
 
   boolean callPrintOverride() {
@@ -303,6 +307,7 @@ private:
   const void* _max = nullptr;
   void* _val = nullptr;
   cbOnChange _onChange = nullptr;
+  void *_cbCtx = nullptr;
   cbOnPrintOverride _onPrintOverride = nullptr;
   boolean cbImmediate = false;
 
@@ -424,6 +429,10 @@ public:
     _onItemPrintOverride = cb;
   }
 
+  void cbCtx(void *ctx) {
+      _cbCtx = ctx;
+  }
+
   void showMenu(const boolean val, const boolean update = true) {
     if (val == isMenuShowing) {
       return;
@@ -456,6 +465,7 @@ private:
   int initInterator = 0;
   OledMenuItem<TGyverOLED> oledMenuItems[_MS_SIZE];
   cbOnChange _onItemChange = nullptr;
+  void *_cbCtx = nullptr;
   cbOnPrintOverride _onItemPrintOverride = nullptr;
 
   int getSelectedItemIndex() {

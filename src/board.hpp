@@ -3,12 +3,13 @@
 #ifndef __BOARD_HPP__
 #define __BOARD_HPP__
 
-// Using Uno only for develop part of features.
-// Arduino Pro Micro is target device.
-#define BOARD_ARDUINO_UNO
-
-#define USE_MICRO_WIRE // for decrease size of code
-#include "GyverOLED/GyverOLED.h"
+// GyverOLED does not allow to set font
+// GyverOLEDMenu draw ugly menu items
+// Both will be replaced
+// #define USE_MICRO_WIRE // for decrease size of code
+// #include "GyverOLED/GyverOLED.h"
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiAvrI2c.h"
 
 #include <SPI.h>
 #include <EEPROM_SPI_WE.h>
@@ -43,8 +44,8 @@
 // #elif defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO)
 
 // Buttons
-#define BTN_SQUARE_PIN    8  // Pin 4 should be here, but is broken on alone board I have
-#define BTN_TRIANGLE_PIN  5
+#define BTN_SQUARE_PIN    1  // Pin 4 should be here but it is broken on alone board I have ((
+#define BTN_TRIANGLE_PIN  2  // Pin 5 should be here but it bacome unstable on my board (((
 #define BTN_CIRCLE_PIN    6
 #define BTN_CROSS_PIN     7
 
@@ -100,7 +101,8 @@ void board_loop_step(void);
 
 
 // Use OLED_NO_BUFFER to keep RAM for another code
-typedef GyverOLED<SSD1306_128x64, OLED_NO_BUFFER> Display;
+// typedef GyverOLED<SSD1306_128x64, OLED_NO_BUFFER> Display;
+typedef SSD1306AsciiAvrI2c Display;
 extern Display oled;
 
 #endif // !__BOARD_HPP__

@@ -35,25 +35,28 @@ void ext_storage_setup(Print& log) {
     if (eep.init()){
         // TODO: statically check next
         // static_assert(EEPROM_BYTES_PER_PAGE == EEPROM_PAGE_SIZE_32, "External EEPROM page size " STR(EEPROM_PAGE_SIZE_32) " is not equal to expected by app model " STR(EEPROM_BYTES_PER_PAGE));
-        eep.setPageSize(EEPROM_PAGE_SIZE_32);
+        // Strage situation, PasswordPump code decide that page size is 32 bytes,
+        // but 25LC256 datasheep says that it's 64 bytes
+        // eep.setPageSize(EEPROM_PAGE_SIZE_32);
+        eep.setPageSize(EEPROM_PAGE_SIZE_64);
         eep.setMemorySize(EEPROM_KBITS_256);
 
         log.println(F("EEPROM Ok"));
+
+        if (getResetFlag != MEMORY_INITIALIZED_FLAG) {                                // if memory has never been initialized, initialize it.
+            log.print(F("Factory Reset..."));
+            storage_factory_reset(log);
+            log.println(F("Ok"));
+        } else {
+            log.println(F("EEPROM is Ok"));
+        }
+
+        acctPosition = 0;
+        acctCount = count_accounts();
     }
     else{
         log.println(F("EEPROM FAIL"));
     }
-
-    if (getResetFlag != MEMORY_INITIALIZED_FLAG) {                                // if memory has never been initialized, initialize it.
-        log.print(F("Factory Reset..."));
-        storage_factory_reset(log);
-        log.println(F("Ok"));
-    } else {
-        log.println(F("EEPROM is Ok"));
-    }
-
-    acctPosition = 0;
-    acctCount = count_accounts();
 
     log.print(acctCount);
     log.println(F(" account(s)"));
