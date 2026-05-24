@@ -1,0 +1,24 @@
+diff --git a/EpoxyDuino.mk b/EpoxyDuino.mk
+index be8318c..6ae253a 100644
+--- a/EpoxyDuino.mk
++++ b/EpoxyDuino.mk
+@@ -192,14 +192,19 @@ MODULE_EXPANSION_C = $(wildcard $(module)/*.c) \
+ MODULE_SRCS_CPP += $(foreach module,$(EPOXY_MODULES),$(MODULE_EXPANSION_CPP))
+ MODULE_SRCS_C += $(foreach module,$(EPOXY_MODULES),$(MODULE_EXPANSION_C))
+ # 3) Collect the source files in the application directory, also 3 levels down.
++ifeq ($(APP_SRCS_CPP),)
+ APP_SRCS_CPP += $(wildcard *.cpp) \
+        $(wildcard */*.cpp) \
+        $(wildcard */*/*.cpp) \
+        $(wildcard */*/*/*.cpp)
++endif
++
++ifeq ($(APP_SRCS_C),)
+ APP_SRCS_C += $(wildcard *.c) \
+        $(wildcard */*.c) \
+        $(wildcard */*/*.c) \
+        $(wildcard */*/*/*.c)
++endif
+ 
+ # Generate the list of object files from the *.cpp, *.c, and *.ino files.
+ OBJS += $(EPOXY_SRCS:%.cpp=%.o)

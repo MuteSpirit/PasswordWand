@@ -1,0 +1,3 @@
+# ignore object files of test modules build
+**.o
+**.out
