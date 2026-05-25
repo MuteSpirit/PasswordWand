@@ -2,11 +2,16 @@
 
 #include "internal_eeprom_storage.hpp"
 
-#define RESET_FLAG_ADDR (fullSizeBytes_ - 1)
+// from Arduino/Crypto docs:
+// The random number generator uses 48 bytes of space at the end of EEPROM memory to store the previous seed. When the system is started next time, the previous saved seed is loaded and then deliberately overwritten with a new seed. This ensures that the device will not accidentally generate the same sequence of random numbers if it is restarted before the first automatic save of the seed.
+// By default the seed is saved once an hour, although this can be changed with RNG.setAutoSaveTime(). Because the device may be restarted before the first hour expires, there is a special case in the code: the first time that the entropy pool fills up, a save will be automatically forced.
+// So the last 48 bytes are busy
+
+#define RESET_FLAG_ADDR (fullSizeBytes_ - 65)
 #define RESET_FLAG (0xff)
 #define EMPTY_BYTE_VALUE (0x0)
 
-InternalEepromStorage::InternalEepromStorage(const uint8_t csPin, const uint8_t wpPin, const uint16_t speed)
+InternalEepromStorage::InternalEepromStorage()
 {}
 
 bool
