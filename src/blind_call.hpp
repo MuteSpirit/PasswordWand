@@ -2,13 +2,14 @@
 #define __BLIND_CALL_HPP__
 
 #include <inttypes.h>
+#include <stddef.h>
 
 /**
  * @brief Auxilary class for creating default BlindCall object
  */
 struct StubCall
 {
-    void doNothing() {};
+    void doNothing(void*) {};
 };
 extern StubCall stubCall;
 
@@ -32,32 +33,6 @@ extern StubCall stubCall;
  */
 class BlindCall
 {
-public:
-    static BlindCall stub()
-    {
-        return make(&stubCall, &StubCall::doNothing);
-    }
-
-public:
-    /// factory method
-    template<typename T, typename... Args>
-    static BlindCall make(T *cls, void (T::*m)(Args...))
-    {
-        BlindCall bc;
-        // we don't allocate memory here actually but call constuctor for pre-allocated memory block
-        new (reinterpret_cast<ClassMemberInvoker<T, Args...>*>(bc.data_)) ClassMemberInvoker<T, Args...>(cls, m);
-        return bc;
-    }
-
-    template<typename... Args>
-    void operator()(Args... arg)
-    {
-        reinterpret_cast<Invoker<Args...>*>(data_)->invoke(arg...);
-    };
-
-protected:
-    uint8_t data_[32] {0}; /// contains ClassMemberInvoker<T> instance. If array size is not enough you will receive compiler error with required one
-
 protected:
     /// @brief Remove ctor from "public" section to allow create it via "make" factory method only.
     /// Use next trick to create "empty" BlindCall:
@@ -93,10 +68,52 @@ protected:
             (_this->*method_)(arg...);
         }
 
+        static void *operator new (size_t size, void* ptr)
+        {
+            (void)(size);
+            return ptr;
+        }
+
     protected:
         Class *_this;
         void (Class::*method_)(Args...arg);
+
+        friend class BlindCall;
     };
+
+public:
+    /// factory method
+    template<typename T, typename... Args>
+    static BlindCall make(T *cls, void (T::*m)(Args...))
+    {
+        BlindCall bc;
+        // we don't allocate memory here actually but call constuctor for pre-allocated memory block
+        new (reinterpret_cast<ClassMemberInvoker<T, Args...>*>(bc.data_)) ClassMemberInvoker<T, Args...>(cls, m);
+        return bc;
+    }
+
+    static BlindCall stub()
+    {
+        return make(&stubCall, &StubCall::doNothing);
+    }
+
+    template<typename... Args>
+    void operator()(Args... arg)
+    {
+        reinterpret_cast<Invoker<Args...>*>(data_)->invoke(arg...);
+    }
+
+    /// @return true BlindCall is not stub
+    operator bool()
+    {
+        return reinterpret_cast<ClassMemberInvoker<StubCall, void*>*>(data_)->_this != &stubCall;
+    }
+
+    BlindCall(const BlindCall&) = default;
+    BlindCall& operator=(const BlindCall&) = default;
+
+protected:
+    uint8_t data_[32] {0}; /// contains ClassMemberInvoker<T> instance. If array size is not enough you will receive compiler error with required one
 };
 
 #endif // !__BLIND_CALL_HPP__

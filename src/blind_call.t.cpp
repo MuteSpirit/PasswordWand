@@ -1,12 +1,26 @@
+#if defined(EPOXY_DUINO)
+
 #include "blind_call.cpp"
 #include "aunit/AssertMacros.h"
-#include <iostream>
 #include <AUnit.h>
 
 test(blind_call_default_ctor)
 {
     BlindCall cb(BlindCall::stub());
     cb();
+}
+
+test(blind_call_stub_or_not)
+{
+    BlindCall stubCb(BlindCall::stub());
+    assertFalse(stubCb);
+
+    struct A {
+        void foo() {}
+    };
+    A a;
+    BlindCall nonStubCb(BlindCall::make(&a, &A::foo));
+    assertTrue(nonStubCb);
 }
 
 test(blind_call_cb_no_args)
@@ -106,3 +120,5 @@ test(blind_call_several_bc_to_the_same_class_and_different_members)
     bcNop((float)3.1);
     assertEqual(6, a.c);
 };
+
+#endif // EPOXY_DUINO
