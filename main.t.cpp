@@ -1,7 +1,5 @@
+#if defined(EPOXY_DUINO)
 #include <AUnitVerbose.h>
-
-// #include "src/encrypt.t.cpp"
-// #include "src/ext_storage.t.cpp"
 
 void
 setup()
@@ -14,3 +12,4 @@ loop()
 {
   aunit::TestRunner::run();
 }
+#endif // EPOXY_DUINO

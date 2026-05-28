@@ -1,25 +1,25 @@
 #include "accounts_menu.hpp"
 
+#include "blind_call.hpp"
 #include "board.hpp"
 #include "keyboard.hpp"
 #include "ext_storage.hpp"
 #include "model.hpp"
+#include "settings.hpp"
 
-static void send_tab(void *ctx);
-
-AccountsMenu::AccountsMenu(Display& oled, volatile const Settings& settings)
+AccountsMenu::AccountsMenu(Display& oled, UserInputs &userInputs, const Settings& settings)
     : oled_(oled)
+    , userInputs_(userInputs)
     , settings_(settings)
 {
     memset(&acc_, 0, sizeof(acc_));
 }
 
 void
-AccountsMenu::init(void (*switch_menu_cb)(void *ctx), void *swich_menu_ctx)
+AccountsMenu::init(BlindCall switchMenuCb)
 {
     // we don't touch switch_menu callback on "triangle" button so far, so don't remember that
-    (void)switch_menu_cb;
-    (void)swich_menu_ctx;
+    (void)(switchMenuCb);
 
     acc_idx_ = 0;
     memset(&acc_, 0, sizeof(Account));
@@ -28,13 +28,11 @@ AccountsMenu::init(void (*switch_menu_cb)(void *ctx), void *swich_menu_ctx)
 void
 AccountsMenu::activate()
 {
-    // Serial.println(F("AccountsMenu::activate()"));
-    //
-    set_button_callback(DeviceButton::button_square, send_username, this);
-    set_button_callback(DeviceButton::button_cross, send_password, this);
-    set_button_callback(DeviceButton::button_circle, send_tab, this);
+    userInputs_.set(UserInputs::Button::square, BlindCall::make(this, &AccountsMenu::sendUsername));
+    userInputs_.set(UserInputs::Button::cross, BlindCall::make(this, &AccountsMenu::sendPassword));
+    userInputs_.set(UserInputs::Button::circle, BlindCall::make(this, &AccountsMenu::sendTab));
 
-    // DEBUG // set_rotate_callback(navigate_accounts, this);
+    userInputs_.set(UserInputs::Encoder::rotary, BlindCall::make(this,&AccountsMenu::navigateAccounts));
 
     oled_.home();
 
@@ -46,11 +44,11 @@ AccountsMenu::activate()
     strcpy(acc_.username, "user1");
     strcpy(acc_.password, "passwd1");
 
-    draw_acc();
+    draw();
 
     // if (ext_eeprom_get(acc_idx_, acc_) || 
     //     ext_eeprom_get_next(acc_idx_, acc_, acc_idx_)) {
-    //     draw_acc();
+    //     draw();
     // } else {
     //     oled_.println(F("No creds accounts"));
     // }
@@ -59,13 +57,11 @@ AccountsMenu::activate()
 void
 AccountsMenu::deactivate()
 {
-    // Serial.println(F("AccountsMenu::deactivate()"));
-    //
-    set_button_callback(DeviceButton::button_square, stub_btn_cb, NULL);
-    set_button_callback(DeviceButton::button_cross, stub_btn_cb, NULL);
-    set_button_callback(DeviceButton::button_circle, stub_btn_cb, NULL);
+    userInputs_.unset(UserInputs::Button::square);
+    userInputs_.unset(UserInputs::Button::cross);
+    userInputs_.unset(UserInputs::Button::circle);
 
-    set_rotate_callback(stub_rotate_cb, NULL);
+    userInputs_.unset(UserInputs::Encoder::rotary);
 
     acc_idx_ = 0;
     memset(&acc_, 0, sizeof(Account));
@@ -74,74 +70,72 @@ AccountsMenu::deactivate()
 }
 
 
-static void
-send_tab(void *ctx)
+void
+AccountsMenu::sendTab()
 {
-    (void)(ctx);
     keyboard_push_tab();
 }
 
 void
-send_username(void *ctx)
+AccountsMenu::sendUsername()
 {
-    keyboard_type_string(((AccountsMenu*)ctx)->acc_.username);
+    keyboard_type_string(acc_.username);
 }
 
 void
-send_password(void *ctx)
+AccountsMenu::sendPassword()
 {
-    keyboard_type_string(((AccountsMenu*)ctx)->acc_.password);
+    keyboard_type_string(acc_.password);
 }
 
 /// @param[in] direction - 0 = No rotation, 1 = Clockwise, -1 = Counter Clockwise
 void
-navigate_accounts(void *ctx, int direction)
+AccountsMenu::navigateAccounts(int direction)
 {
     if (0 == direction) {
         return;
     }
 
-    AccountsMenu* m = ((AccountsMenu*)ctx);
-    uint8_t idx = m->acc_idx_;
+    uint8_t idx = acc_idx_;
 
     do {
         if (direction > 0) {
-            if (ext_eeprom_get_next(m->acc_idx_, m->acc_, idx)) {
+            if (ext_eeprom_get_next(acc_idx_, acc_, idx)) {
                 break;
             }
-            if (ext_eeprom_get(0, m->acc_)) {
+            if (ext_eeprom_get(0, acc_)) {
                 idx = 0;
                 break;
             }
-            if (ext_eeprom_get_next(0, m->acc_, idx)) {
+            if (ext_eeprom_get_next(0, acc_, idx)) {
                 break;
             }
         } else {
-            if (ext_eeprom_get_prev(m->acc_idx_, m->acc_, idx)) {
+            if (ext_eeprom_get_prev(acc_idx_, acc_, idx)) {
                 break;
             }
-            if (ext_eeprom_get(CREDS_ACCOMIDATED, m->acc_)) {
+            if (ext_eeprom_get(CREDS_ACCOMIDATED, acc_)) {
                 idx = CREDS_ACCOMIDATED;
                 break;
             }
-            if (ext_eeprom_get_prev(CREDS_ACCOMIDATED, m->acc_, idx)) {
+            if (ext_eeprom_get_prev(CREDS_ACCOMIDATED, acc_, idx)) {
                 break;
             }
         }
     } while (0);
 
-    if (idx != m->acc_idx_) {
-        m->acc_idx_ = idx;
+    if (idx != acc_idx_) {
+        acc_idx_ = idx;
 
-        m->oled_.clear();
-        m->oled_.home();
+        oled_.clear();
+        oled_.home();
 
-        m->draw_acc();
+        draw();
     }
 }
 
 void
-AccountsMenu::draw_acc()
+AccountsMenu::draw()
 {
     oled_.println("  Credentials:  ");
 

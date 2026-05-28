@@ -1,10 +1,15 @@
-#include <Print.h>
-
 #include "display_ui.hpp"
-#include "board.hpp"
+#include "user_inputs.hpp"
+#include "accounts_menu.hpp"
+#include "settings_menu.hpp"
 
-DisplayUI::DisplayUI(Display &oled, AccountsMenu &accMenu, SettingsMenu &settingsMenu)
+
+DisplayUI::DisplayUI(Display &oled,
+                     UserInputs &userInputs,
+                     AccountsMenu &accMenu,
+                     SettingsMenu &settingsMenu)
     : oled_(oled)
+    , userInputs_(userInputs)
     , accMenu_(accMenu)
     , settingsMenu_(settingsMenu)
 {}
@@ -15,30 +20,26 @@ DisplayUI::ui_setup(void)
     oled_.clear();
     oled_.home();
 
-    accMenu_.init(switch_to_settings_menu, this);
-    settingsMenu_.init(switch_to_accounts_menu, this);
+    accMenu_.init(BlindCall::make(this, &DisplayUI::switch2settingsMenu));
+    settingsMenu_.init(BlindCall::make(this, &DisplayUI::switch2accountsMenu));
 
-    switch_to_accounts_menu(this);
+    switch2accountsMenu();
 }
 
 void
-switch_to_settings_menu(void *ctx)
+DisplayUI::switch2settingsMenu()
 {
-    DisplayUI* _this = (DisplayUI*)ctx;
+    accMenu_.deactivate();
+    settingsMenu_.activate();
 
-    _this->accMenu_.deactivate();
-    _this->settingsMenu_.activate();
-
-    set_button_callback(DeviceButton::button_triangle, switch_to_accounts_menu, ctx);
+    userInputs_.set(UserInputs::Button::triangle, BlindCall::make(this, &DisplayUI::switch2accountsMenu));
 }
 
 void
-switch_to_accounts_menu(void *ctx)
+DisplayUI::switch2accountsMenu()
 {
-    DisplayUI* _this = (DisplayUI*)ctx;
+    settingsMenu_.deactivate();
+    accMenu_.activate();
 
-    _this->settingsMenu_.deactivate();
-    _this->accMenu_.activate();
-
-    set_button_callback(DeviceButton::button_triangle, switch_to_settings_menu, ctx);
+    userInputs_.set(UserInputs::Button::triangle, BlindCall::make(this, &DisplayUI::switch2settingsMenu));
 }

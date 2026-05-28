@@ -1,24 +1,21 @@
 #pragma once
-
 #ifndef __SETTINGS_MENU_HPP__
 #define __SETTINGS_MENU_HPP__
 
-// #include <Arduino.h>
-#include <inttypes.h>
-
 #include "menu.hpp"
 #include "board.hpp"
-#include "settings.hpp"
 
-// void menu_item_cb(void *ctx, const int index, const void* val, const byte valType);
+class Settings;
+class UserInputs;
+
 
 class SettingsMenu : public Menu
 {
 public:
-    SettingsMenu(Display &oled, volatile Settings& settings);
-    ~SettingsMenu() {};
+    SettingsMenu(Display &oled, UserInputs& userInputs, Settings& settings);
+    ~SettingsMenu() = default;
 
-    virtual void init(void (*switch_menu_cb)(void *ctx), void *swich_menu_ctx) override;
+    virtual void init(BlindCall switchMenuCb) override;
 
     virtual void activate() override;
     virtual void deactivate() override;
@@ -52,44 +49,33 @@ protected:
 protected:
     void drawItem();
 
-    static void select_next_item(void *ctx);
-    static void select_prev_item(void *ctx);
-    static void navigate_item_cb(void *ctx, int direction);
-    static void toggle_change_item_cb(void *ctx);
-
     void selectPrevItem();
     void selectNextItem();
-    void toggleChangeItem();
+    void navigateItemCb(int direction);
 
-    static void select_next_value(void *ctx);
-    static void select_prev_value(void *ctx);
-    static void select_value(void *ctx, int direction);
+    void toggleChangeItem();
 
     void selectPrevValue();
     void selectNextValue();
+    void selectValue(int direction);
 
     void enterEditMode();
     void leaveEditMode();
-
-    static void commit_change_cb(void *ctx);
-    static void cancel_change_cb(void *ctx);
 
     void commitChange();
     void cancelChange();
 
 protected:
     Display &oled_;
-    volatile Settings &settings_;
+    UserInputs& userInputs_;
+    Settings &settings_;
 
     static const uint8_t numItems_{2};
     MenuItem items_[numItems_];
     uint8_t activeItemIdx_{0};
     bool editMode_{false};
 
-    void (*switch_menu_cb_)(void *ctx);
-    void *switch_menu_ctx_;
-    //
-    // friend void menu_item_cb(void *ctx, const int index, const void* val, const byte valType);
+    BlindCall switchMenuCb_;
 };
 
 #endif // !__SETTINGS_MENU_HPP__

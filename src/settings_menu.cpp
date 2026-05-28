@@ -1,17 +1,20 @@
 #include "settings_menu.hpp"
 
-// GyverOLEDMenu library draw menu item ugly and will be replaced
+// GyverOLEDMenu library draw menu item ugly and was replaced
 // #define MENU_SELECTED_H  (-5)
 // #define MENU_ITEM_PADDING_TOP 10
 // #include "GyverOLEDMenu.h"
 
-#include "board.hpp"
+#include "user_inputs.hpp"
+#include "settings.hpp"
 #include "cli.hpp"
-#include "ext_storage.hpp"
 
-SettingsMenu::SettingsMenu(Display &oled, volatile Settings& settings)
+
+SettingsMenu::SettingsMenu(Display &oled, UserInputs& userInputs, Settings& settings)
     : oled_(oled)
+    , userInputs_(userInputs)
     , settings_(settings)
+    , switchMenuCb_(BlindCall::stub())
 {
     uint8_t i = 0;
 
@@ -19,8 +22,8 @@ SettingsMenu::SettingsMenu(Display &oled, volatile Settings& settings)
     items_[i].type_ = MenuItem::Type::bool_t;
     items_[i].bValue_ = settings_.cli_turn_on_;
     items_[i].targetValue_ = &settings_.cli_turn_on_;
-
-    items_[++i].title_ = "Unhide Pass";
+    ++i;
+    items_[i].title_ = "Unhide Pass";
     items_[i].type_ = MenuItem::Type::bool_t;
     items_[i].bValue_ = settings_.unhide_passwords_;
     items_[i].targetValue_ = &settings_.unhide_passwords_;
@@ -29,40 +32,23 @@ SettingsMenu::SettingsMenu(Display &oled, volatile Settings& settings)
 }
 
 void
-SettingsMenu::init(void (*switch_menu_cb)(void *ctx), void *switch_menu_ctx)
+SettingsMenu::init(BlindCall switchMenuCb)
 {
-    switch_menu_cb_ = switch_menu_cb;
-    switch_menu_ctx_ = switch_menu_ctx;
-}
-
-void
-SettingsMenu::select_next_item(void *ctx)
-{
-    ((SettingsMenu*)ctx)->selectNextItem();
+    switchMenuCb_ = switchMenuCb;
 }
 
 void
 SettingsMenu::selectNextItem()
 {
-    // Serial.print(F("SelectNextItem: "));
     if (activeItemIdx_ < numItems_ - 1) {
         ++activeItemIdx_;
-        // Serial.println(activeItemIdx_);
         drawItem();
     }
 }
 
 void
-SettingsMenu::select_prev_item(void *ctx)
-{
-    ((SettingsMenu*)ctx)->selectPrevItem();
-}
-
-void
 SettingsMenu::selectPrevItem()
 {
-    // Serial.print(F("SelectPrev: "));
-    // Serial.println(activeItemIdx_);
     if (activeItemIdx_ > 0) {
         --activeItemIdx_;
         drawItem();
@@ -70,46 +56,28 @@ SettingsMenu::selectPrevItem()
 }
 
 void
-SettingsMenu::navigate_item_cb(void *ctx, int direction)
+SettingsMenu::navigateItemCb(int direction)
 {
     if (0 == direction) {
         return;
     }
     if (direction > 0) {
-        ((SettingsMenu*)ctx)->selectNextItem();
+        selectNextItem();
     } else {
-        ((SettingsMenu*)ctx)->selectPrevItem();
+        selectPrevItem();
     }
 }
 
 void
-SettingsMenu::toggle_change_item_cb(void *ctx)
-{
-    ((SettingsMenu*)ctx)->toggleChangeItem();
-}
-
-void
-SettingsMenu::select_next_value(void *ctx)
-{
-    ((SettingsMenu*)ctx)->selectNextValue();
-}
-
-void
-SettingsMenu::select_prev_value(void *ctx)
-{
-    ((SettingsMenu*)ctx)->selectPrevValue();
-}
-
-void
-SettingsMenu::select_value(void *ctx, int direction)
+SettingsMenu::selectValue(int direction)
 {
     if (0 == direction) {
         return;
     }
     if (direction > 0) {
-        ((SettingsMenu*)ctx)->selectNextValue();
+        selectNextValue();
     } else {
-        ((SettingsMenu*)ctx)->selectPrevValue();
+        selectPrevValue();
     }
 }
 
@@ -130,13 +98,13 @@ SettingsMenu::enterEditMode()
 
     oled.setFont(cp437font8x8);
 
-    set_button_callback(DeviceButton::button_square, SettingsMenu::select_prev_value, this);
-    set_button_callback(DeviceButton::button_cross, SettingsMenu::select_next_value, this);
+    userInputs_.set(UserInputs::Button::square, BlindCall::make(this, &SettingsMenu::selectPrevValue));
+    userInputs_.set(UserInputs::Button::cross, BlindCall::make(this, &SettingsMenu::selectNextValue));
 
-    set_button_callback(DeviceButton::button_circle, SettingsMenu::commit_change_cb, this);
-    set_button_callback(DeviceButton::button_triangle, SettingsMenu::cancel_change_cb, this);
+    userInputs_.set(UserInputs::Button::circle, BlindCall::make(this, &SettingsMenu::commitChange));
+    userInputs_.set(UserInputs::Button::triangle, BlindCall::make(this, &SettingsMenu::cancelChange));
 
-    set_rotate_callback(SettingsMenu::select_value, this);
+    userInputs_.set(UserInputs::Encoder::rotary, BlindCall::make(this, &SettingsMenu::selectValue));
 
     drawItem();
 }
@@ -148,13 +116,13 @@ SettingsMenu::leaveEditMode()
 
     oled.setFont(System5x7);
 
-    set_button_callback(DeviceButton::button_square, SettingsMenu::select_prev_item, this);
-    set_button_callback(DeviceButton::button_cross, SettingsMenu::select_next_item, this);
+    userInputs_.set(UserInputs::Button::square, BlindCall::make(this, &SettingsMenu::selectPrevItem));
+    userInputs_.set(UserInputs::Button::cross, BlindCall::make(this, &SettingsMenu::selectNextItem));
 
-    set_button_callback(DeviceButton::button_circle, SettingsMenu::toggle_change_item_cb, this);
-    set_button_callback(DeviceButton::button_triangle, switch_menu_cb_, switch_menu_ctx_);
+    userInputs_.set(UserInputs::Button::circle, BlindCall::make(this, &SettingsMenu::toggleChangeItem));
+    userInputs_.set(UserInputs::Button::triangle, switchMenuCb_);
 
-    set_rotate_callback(SettingsMenu::navigate_item_cb, this);
+    userInputs_.set(UserInputs::Encoder::rotary, BlindCall::make(this, &SettingsMenu::navigateItemCb));
 
     drawItem();
 }
@@ -171,18 +139,6 @@ SettingsMenu::selectNextValue()
 {
     items_[activeItemIdx_].bValue_ = !items_[activeItemIdx_].bValue_;
     drawItem();
-}
-
-void
-SettingsMenu::commit_change_cb(void *ctx)
-{
-    ((SettingsMenu*)ctx)->commitChange();
-}
-
-void
-SettingsMenu::cancel_change_cb(void *ctx)
-{
-    ((SettingsMenu*)ctx)->cancelChange();
 }
 
 void
@@ -227,25 +183,21 @@ SettingsMenu::drawItem()
 void
 SettingsMenu::activate()
 {
-    // Serial.println(F("SettingsMenu::activate()"));
     cancelChange();
 }
 
 void
 SettingsMenu::deactivate()
 {
-    // Serial.println(F("SettingsMenu::deactivate()"));
+    userInputs_.unset(UserInputs::Button::circle);
+    userInputs_.unset(UserInputs::Button::triangle);
+    userInputs_.unset(UserInputs::Button::square);
+    userInputs_.unset(UserInputs::Button::cross);
 
-    set_button_callback(DeviceButton::button_circle, stub_btn_cb, nullptr);
-    set_button_callback(DeviceButton::button_triangle, switch_menu_cb_, switch_menu_ctx_);
-
-    set_button_callback(DeviceButton::button_square, stub_btn_cb, nullptr);
-    set_button_callback(DeviceButton::button_cross, stub_btn_cb, nullptr);
-
-    set_rotate_callback(stub_rotate_cb, nullptr);
+    userInputs_.unset(UserInputs::Encoder::rotary);
 
     oled_.clear();
 
     editMode_ = false;
-    oled.setFont(System5x7);                                                // perfect, slightly smaller than Arial14
+    oled.setFont(System5x7);
 }

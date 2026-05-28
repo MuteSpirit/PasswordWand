@@ -1,39 +1,42 @@
 #pragma once
-
 #ifndef __ACCOUNTS_MENU_HPP__
 #define __ACCOUNTS_MENU_HPP__
 
+#include <inttypes.h>
 #include "model.hpp"
 #include "menu.hpp"
 #include "board.hpp"
-#include "settings.hpp"
 
-void send_username(void *ctx);
-void send_password(void *ctx);
-void navigate_accounts(void *ctx, int direction);
+class Settings;
+class UserInputs;
+
 
 class AccountsMenu : public Menu
 {
 public:
-    AccountsMenu(Display &oled, volatile const Settings&);
-    ~AccountsMenu() {};
+    AccountsMenu(Display &oled, UserInputs &userInputs, const Settings&);
+    ~AccountsMenu() = default;
 
-    virtual void init(void (*switch_menu_cb)(void *ctx), void *swich_menu_ctx) override;
+    virtual void init(BlindCall switchMenuCb) override;
 
     virtual void activate() override;
     virtual void deactivate() override;
 
 protected:
+    void sendUsername();
+    void sendPassword();
+    void sendTab();
+    void navigateAccounts(int direction);
+
+    void draw();
+
+    Display& oled_;
+    UserInputs &userInputs_;
+
+    const Settings& settings_;
+
     Account acc_;
     uint8_t acc_idx_{0};
-    Display& oled_;
-    volatile const Settings& settings_;
-
-    void draw_acc();
-
-    friend void send_username(void *ctx);
-    friend void send_password(void *ctx);
-    friend void navigate_accounts(void *ctx, int direction);
 };
 
 #endif // !__ACCOUNTS_MENU_HPP__

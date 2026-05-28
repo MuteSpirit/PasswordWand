@@ -3,78 +3,44 @@
 #include <RotaryEncoder.h>
 
 #include "board.hpp"
+#include "blind_call.hpp"
+#include "user_inputs.hpp"
 
 EEPROM_SPI_WE eep(EXT_EEPROM_CS_PIN, EXT_EEPROM_WP_PIN, 1000000);
 
 RotaryEncoder rotaryEncoder(ROTARY_CLK_PIN, ROTARY_DT_PIN);
 
-struct ButtonHook
+
+////////////////////////////////////////////////////////////////////////////////
+void
+DeviceUserInputs::set(Button btn, BlindCall cb)
 {
-    ButtonCallback cb;
-    void *ctx;
-
-    bool push_happen_;
-};
-
-volatile ButtonHook btn_hooks[DeviceButton::num_of_buttons];
-
-struct RotateHook
-{
-    RotateCallback cb;
-    void *ctx;
-};
-
-volatile RotateHook encoder_hook;
-
-uint8_t
-btn2pin(DeviceButton btn)
-{
-    switch (btn) {
-        case DeviceButton::button_square: return BTN_SQUARE_PIN;
-        case DeviceButton::button_triangle: return BTN_TRIANGLE_PIN;
-        case DeviceButton::button_circle: return BTN_CIRCLE_PIN;
-        case DeviceButton::button_cross: return BTN_CROSS_PIN;
-        default:
-           return DeviceButton::num_of_buttons;
-    }
-}
-
-const char*
-btn2name(DeviceButton btn)
-{
-    switch (btn) {
-        case DeviceButton::button_square: return "SQUARE";
-        case DeviceButton::button_triangle: return "TRIANGLE";
-        case DeviceButton::button_circle: return "CIRCLE";
-        case DeviceButton::button_cross: return "CROSS";
-        default:
-           return "UNKNOWN";
-    }
+    btn_hooks_[static_cast<uint8_t>(btn)].cb_ = cb;
 }
 
 void
-set_button_callback(DeviceButton btn, void (*cb)(void*), void *ctx)
+DeviceUserInputs::unset(Button btn)
 {
-    btn_hooks[btn].cb = cb;
-    btn_hooks[btn].ctx = ctx;
+    btn_hooks_[static_cast<uint8_t>(btn)].cb_ = BlindCall::stub();
 }
 
 void
-set_rotate_callback(RotateCallback cb, void *ctx)
+DeviceUserInputs::set(Encoder enc, BlindCall cb)
 {
-    encoder_hook.cb = cb;
-    encoder_hook.ctx = ctx;
+    encoder_hooks_[static_cast<uint8_t>(enc)] = cb;
 }
 
 void
-board_setup(void)
+DeviceUserInputs::unset(Encoder enc)
 {
-    for (uint8_t i = DeviceButton::button_square; i < DeviceButton::num_of_buttons; ++i) {
-        btn_hooks[i].cb = nullptr;
-        btn_hooks[i].ctx = nullptr;
-        btn_hooks[i].push_happen_ = false;
-    }
+    encoder_hooks_[static_cast<uint8_t>(enc)] = BlindCall::stub();
+}
 
+static uint8_t btn2pin(UserInputs::Button btn);
+
+void
+DeviceUserInputs::setup(void)
+{
     pinMode(4, INPUT_PULLUP); // DEBUG
     pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
     pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
@@ -96,62 +62,76 @@ board_setup(void)
     // pinMode(ROTARY_DT_PIN, INPUT_PULLUP);
 }
 
-static void
-check_button(DeviceButton btn)
+void
+DeviceUserInputs::checkButton(UserInputs::Button btn)
 {
     // Physycal debounce using RC-filter did not help with simplest buttons I have
     // Let's try to react only on changing to sequence of signals HIGH (by default) then LOW then HIGH again
-
-    if (NULL == btn_hooks[btn].cb) {
+    if (!btn_hooks_[static_cast<uint8_t>(btn)].cb_) {
         return;
     }
 
-    const uint8_t i = btn2pin(btn);
-    if (btn_hooks[i].push_happen_) {
-        if (HIGH == digitalRead(i)) {
-            // Serial.print(btn2name(btn));
-            // Serial.println(F(": release"));
+    uint8_t pin = btn2pin(btn);
 
-            btn_hooks[i].push_happen_ = false;
-            (*btn_hooks[btn].cb)(btn_hooks[btn].ctx);
+    if (btn_hooks_[static_cast<uint8_t>(btn)].push_happen_) {
+        if (HIGH == digitalRead(pin)) {
+            btn_hooks_[static_cast<uint8_t>(btn)].push_happen_ = false;
+            btn_hooks_[static_cast<uint8_t>(btn)].cb_();
         }
     } else {
-        if (LOW == digitalRead(i)) {
-            // Serial.print(btn2name(btn));
-            // Serial.println(F(": push"));
-
-            btn_hooks[i].push_happen_ = true;
+        if (LOW == digitalRead(pin)) {
+            btn_hooks_[static_cast<uint8_t>(btn)].push_happen_ = true;
         }
     }
 }
 
-static void
-check_encoder(void)
+void
+DeviceUserInputs::checkEncoder(UserInputs::Encoder enc)
 {
-    if (encoder_hook.cb) {
-        rotaryEncoder.tick();
-
-        int dir = (int)rotaryEncoder.getDirection();
-        (*encoder_hook.cb)(encoder_hook.ctx, dir);
+    if (!encoder_hooks_[static_cast<uint8_t>(enc)]) {
+        return;
     }
 
+    rotaryEncoder.tick();
+
+    int dir = (int)rotaryEncoder.getDirection();
+    encoder_hooks_[static_cast<uint8_t>(enc)](dir);
 }
 
 void
-board_loop_step(void)
+DeviceUserInputs::loop_step(void)
 {
-    check_encoder();
+    checkEncoder(UserInputs::Encoder::rotary);
 
-    check_button(button_square);
-    check_button(button_triangle);
-    check_button(button_circle);
-    check_button(button_cross);
+    checkButton(UserInputs::Button::square);
+    checkButton(UserInputs::Button::triangle);
+    checkButton(UserInputs::Button::circle);
+    checkButton(UserInputs::Button::cross);
 }
 
-void
-stub_btn_cb(void *)
-{}
+static uint8_t
+btn2pin(UserInputs::Button btn)
+{
+    switch (btn) {
+        case UserInputs::Button::square: return BTN_SQUARE_PIN;
+        case UserInputs::Button::triangle: return BTN_TRIANGLE_PIN;
+        case UserInputs::Button::circle: return BTN_CIRCLE_PIN;
+        case UserInputs::Button::cross: return BTN_CROSS_PIN;
+        default:
+           return 0;
+    }
+}
 
-void
-stub_rotate_cb(void *, int)
-{}
+/// @brief For debug. Uncomment on demand.
+// static const char*
+// btn2name(UserInputs::Button btn)
+// {
+//     switch (btn) {
+//         case UserInputs::Button::square: return "SQUARE";
+//         case UserInputs::Button::triangle: return "TRIANGLE";
+//         case UserInputs::Button::circle: return "CIRCLE";
+//         case UserInputs::Button::cross: return "CROSS";
+//         default:
+//            return "UNKNOWN";
+//     }
+// }

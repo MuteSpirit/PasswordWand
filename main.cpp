@@ -6,27 +6,29 @@
 #include "src/board.hpp"
 #include "src/accounts_menu.hpp"
 #include "src/settings_menu.hpp"
+#include "src/settings.hpp"
 
 // Baud rate for serial port
 #define SERIAL_BAUD_RATE 38400
 
 #define SHOW_SPLASHSCREEN 1000 // ms
 
-volatile Settings settings;
+Settings settings;
 
 // Use OLED_NO_BUFFER to keep RAM for another code
 Display oled;
 
-AccountsMenu accMenu(oled, settings);
-SettingsMenu settingsMenu(oled, settings);
+DeviceUserInputs userInputs;
+AccountsMenu accMenu(oled, userInputs, settings);
+SettingsMenu settingsMenu(oled, userInputs, settings);
 
-DisplayUI ui(oled, accMenu, settingsMenu);
+DisplayUI ui(oled, userInputs, accMenu, settingsMenu);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void
 setup()
 {
-  board_setup();
+  userInputs.setup();
 
   oled.begin(&Adafruit128x32, OLED_I2C_ADDR);
   oled.setFont(System5x7);                                                // perfect, slightly smaller than Arial14
@@ -61,5 +63,5 @@ loop()
   }
 
   cli_loop_step();
-  board_loop_step();
+  userInputs.loop_step();
 }

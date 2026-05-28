@@ -14,6 +14,8 @@
 #include <SPI.h>
 #include <EEPROM_SPI_WE.h>
 
+#include "user_inputs.hpp"
+
 // #if defined(ARDUINO_AVR_UNO)
 //
 // // Buttons
@@ -72,29 +74,8 @@
 // #error("Unknown board type")
 // #endif // ARDUINO_AVR_UNO
 
-
-
 extern EEPROM_SPI_WE eep;
 
-
-/// There are 4 buttons on the device with geometric figures on them:
-enum DeviceButton
-{
-   button_square = 0,
-   button_triangle,
-   button_circle,
-   button_cross,
-   num_of_buttons
-};
-
-typedef void (*ButtonCallback)(void*);
-
-void set_button_callback(DeviceButton btn, ButtonCallback cb, void *ctx);
-void stub_btn_cb(void *);
-
-typedef void (*RotateCallback)(void *ctx, int direction);
-void set_rotate_callback(RotateCallback cb, void *ctx);
-void stub_rotate_cb(void *, int);
 
 void board_setup(void);
 void board_loop_step(void);
@@ -104,5 +85,35 @@ void board_loop_step(void);
 // typedef GyverOLED<SSD1306_128x64, OLED_NO_BUFFER> Display;
 typedef SSD1306AsciiAvrI2c Display;
 extern Display oled;
+
+////////////////////////////////////////////////////////////////////////////////
+class DeviceUserInputs : public UserInputs
+{
+public:
+    void setup(); /// call from sketch setup()
+    void loop_step(); /// call from sketch loop()
+
+    virtual void set(Button btn, BlindCall cb) override;
+    virtual void unset(Button btn) override;
+
+    virtual void set(Encoder, BlindCall cb) override;
+    virtual void unset(Encoder) override;
+
+protected:
+    void checkButton(UserInputs::Button btn);
+    void checkEncoder(UserInputs::Encoder enc);
+
+protected:
+    struct ButtonHook
+    {
+        BlindCall cb_     {BlindCall::stub()};
+        bool push_happen_ {false};
+    };
+
+    ButtonHook btn_hooks_[static_cast<uint8_t>(UserInputs::Button::num_of_buttons)];
+
+    BlindCall encoder_hooks_[static_cast<uint8_t>(UserInputs::Encoder::num_of_encoders)] {BlindCall::stub()};
+
+};
 
 #endif // !__BOARD_HPP__

@@ -1,29 +1,28 @@
 #pragma once
-
 #ifndef __DISPLAY_UI_HPP__
 #define __DISPLAY_UI_HPP__
 
 #include "board.hpp"
-#include "settings_menu.hpp"
-#include "accounts_menu.hpp"
 
-void switch_to_settings_menu(void *ctx);
-void switch_to_accounts_menu(void *ctx);
+class AccountsMenu;
+class SettingsMenu;
+class UserInputs;
+
 
 class DisplayUI
 {
 public:
-    DisplayUI(Display&, AccountsMenu&, SettingsMenu&);
+    DisplayUI(Display&, UserInputs &, AccountsMenu&, SettingsMenu&);
 
     void ui_setup(void);
 
 protected:
-    friend void switch_to_settings_menu(void *ctx);
-    friend void switch_to_accounts_menu(void *ctx);
+    void switch2settingsMenu();
+    void switch2accountsMenu();
 
 protected:
     Display& oled_;
-
+    UserInputs &userInputs_;
     AccountsMenu& accMenu_;
     SettingsMenu& settingsMenu_;
 };
