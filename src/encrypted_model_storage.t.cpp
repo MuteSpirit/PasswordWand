@@ -1,3 +1,4 @@
+#if defined(EPOXY_DUINO)
 #include "model_storage.cpp"
 #include "encrypted_block_storage.hpp"
 #include "memory_block_storage.cpp"
@@ -27,3 +28,4 @@ test(encrypted_model_storage_add)
     assertEqual(1, m.count<Account>());
     assertTrue(m.is_exist<Account>(acc.name));
 };
+#endif // EPOXY_DUINO

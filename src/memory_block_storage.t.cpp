@@ -1,3 +1,4 @@
+#if defined(EPOXY_DUINO)
 #include "memory_block_storage.cpp"
 #include <AUnit.h>
 
@@ -78,3 +79,4 @@ test(mem_blk_store_factory_reset)
     assertEqual(0, store.read(0x40));
     assertEqual(0, store.read(0x80 - 2));
 };
+#endif // EPOXY_DUINO

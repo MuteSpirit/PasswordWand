@@ -61,6 +61,8 @@ ModelStorage::del(const char* key)
     return false;
 }
 
+// Let's instantiate for Account to keep control on ModelStorage class usage
+
 template bool ModelStorage::is_exist<Account>(const char* key);
 
 template uint16_t ModelStorage::count<Account>();

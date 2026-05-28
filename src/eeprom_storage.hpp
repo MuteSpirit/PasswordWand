@@ -33,7 +33,7 @@ protected:
 protected:
     EEPROM_SPI_WE eep_;
     uint32_t fullSizeBytes_;
-    const uint16_t pageSize_;
+    uint16_t pageSize_;
 };
 
 #endif // !__EEPROM_STORAGE__

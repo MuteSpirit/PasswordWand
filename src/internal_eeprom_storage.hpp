@@ -8,6 +8,8 @@
 class InternalEepromStorage : public BlockStorage
 {
 public:
+    bool init();
+
     virtual bool is_addr_ok(const uint32_t addr) const override;
 
     virtual uint8_t read(const uint32_t addr) override;

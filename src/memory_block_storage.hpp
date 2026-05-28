@@ -1,7 +1,6 @@
 #ifndef __MEMORY_BLOCK_STORAGE__
 #define __MEMORY_BLOCK_STORAGE__
 
-#include <cstddef>
 #include <inttypes.h>
 #include "block_storage.hpp"
 
@@ -31,7 +30,7 @@ protected:
 
 protected:
     uint8_t store_[fullSizeBytes];
-    ptrdiff_t offset_{0};
+    uint32_t offset_{0};
 
     friend MemoryBlockStorageTestHelper;
 };

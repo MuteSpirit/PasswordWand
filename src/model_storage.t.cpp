@@ -1,3 +1,4 @@
+#if defined(EPOXY_DUINO)
 #include "model_storage.hpp"
 #include "memory_block_storage.cpp"
 #include <AUnit.h>
@@ -202,3 +203,25 @@ test(model_storage_add_del_and_add_to_fill_free_spot)
     assertEqual(1, idx);
     assertStringCaseEqual(acc3.name, acc.name);
 };
+
+test(model_storage_is_persist)
+{
+    MemoryBlockStorage<1024, 64> bs;
+
+    Account acc {.name = "n", .username = "u", .password = "p"};
+    // a'la first device with block storage initialization
+    {
+        ModelStorage m(bs);
+
+        assertTrue(m.add(acc));
+        assertEqual(1, m.count<Account>());
+    }
+    // a'la second/one-of-next device boot with data in ext EEPROM
+    {
+        ModelStorage m(bs);
+
+        assertEqual(1, m.count<Account>());
+        assertFalse(m.is_exist<Account>(acc.name));
+    }
+}
+#endif // EPOXY_DUINO
