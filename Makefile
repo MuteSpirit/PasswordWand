@@ -12,4 +12,4 @@ include ../libraries/EpoxyDuino/EpoxyDuino.mk
 clean_app:
 	rm $(wildcard *.t.o) $(wildcard src/*.t.o)
 
-t: clean_app $(APP_NAME).out run
+t: $(APP_NAME).out run
