@@ -6,6 +6,10 @@ DEPS := $(wildcard src/*.cpp)
 
 APP_SRCS_CPP := main.t.cpp $(wildcard src/*.t.cpp)
 
+EXTRA_CFLAGS := -g3
+EXTRA_CPPFLAGS := -g3
+EXTRA_CXXFLAGS := -g3
+
 include ../libraries/EpoxyDuino/EpoxyDuino.mk
 
 .PHONY: clean_app
