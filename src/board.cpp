@@ -41,7 +41,6 @@ static uint8_t btn2pin(UserInputs::Button btn);
 void
 DeviceUserInputs::setup(void)
 {
-    pinMode(4, INPUT_PULLUP); // DEBUG
     pinMode(BTN_SQUARE_PIN, INPUT_PULLUP);
     pinMode(BTN_TRIANGLE_PIN, INPUT_PULLUP);
     pinMode(BTN_CIRCLE_PIN, INPUT_PULLUP);

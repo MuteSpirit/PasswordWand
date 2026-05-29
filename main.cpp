@@ -28,6 +28,9 @@ DisplayUI ui(oled, userInputs, accMenu, settingsMenu);
 void
 setup()
 {
+  pinMode(4, INPUT_PULLUP); // DEBUG
+
+
   userInputs.setup();
 
   oled.begin(&Adafruit128x32, OLED_I2C_ADDR);
