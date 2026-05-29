@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __USER_INPUTS__
-#define __USER_INPUTS__
+#ifndef __USER_INPUTS_HPP__
+#define __USER_INPUTS_HPP__
 
 #include <inttypes.h>
 #include "blind_call.hpp"
@@ -33,6 +33,11 @@ public:
 
     virtual void set(Encoder, BlindCall cb) = 0; /// expected call is cb(int direction)
     virtual void unset(Encoder) = 0; /// delete callback previously set on encoder
+
+    virtual ~UserInputs() = default;
+    
+protected:
+    UserInputs() = default;
 };
 
-#endif // !__USER_INPUTS__
+#endif // !__USER_INPUTS_HPP__
