@@ -3,8 +3,6 @@
 #ifndef __LAYOUT_HPP__
 #define __LAYOUT_HPP__
 
-#include <Arduino.h>
-
 //- Special Byte Values
 
 #define INITIAL_MEMORY_STATE_CHAR -1                                            // 11111111 binary twos complement, -1 decimal, 0xFF hex.  When factory fresh all bytes in EEprom memory = 0xFF.

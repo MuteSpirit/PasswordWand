@@ -1,16 +1,16 @@
 #pragma once
-
-#include "blind_call.hpp"
-#include "layout.hpp"
+#include "auth.hpp"
 #ifndef __AUTH_FORM__
 #define __AUTH_FORM__
 
 #include "menu.hpp"
-#include "oled.hpp"
-#include "user_inputs.hpp"
+#include "layout.hpp"
+
 
 class AuthFormTestHelper;
-
+class UserInputs;
+class Oled;
+class Authenticator;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// * Rotate encoder will scroll current symbol from available symbolic group
@@ -27,15 +27,11 @@ public:
         alphaLowerCase,
         alphaUpperCase,
         digit,
-        specials
+        specials,
+        COUNT
     };
 
-    static constexpr char alphaLowerChars[] {"abcdefghijklmnopqrstuvwxyz"}; 
-    static constexpr char alphaUpperChars[] {"ABCDEFGHIJKLMNOPQRSTUVWXYZ"}; 
-    static constexpr char digitChars[] {"0123456789"}; 
-    static constexpr char specialChars[] {" /?><,:';|}{][+_)(*&^%$#!~=-@. "};
-
-    AuthForm(Oled &oled, UserInputs &inputs);
+    AuthForm(Oled &oled, UserInputs &inputs, Authenticator& auth);
 
     virtual void init(BlindCall switchMenuCb) override;
 
@@ -46,23 +42,29 @@ protected:
     friend AuthFormTestHelper;
 
     void chooseNextSymbolGroup();
+
+    void chooseNextSymbol();
+    void choosePrevSymbol();
+
     void eraseLastSymbol();
     void commitSymbol();
     void commitPassword();
 
     char typingSymbol() const;
+    uint8_t typingGroupLen() const;
 
 protected:
     Oled &oled_;
     UserInputs &userInputs_;
+    Authenticator& auth_;
 
     BlindCall switchMenuCb_ {BlindCall::stub()};
 
     uint8_t typingSymbolIdx_ {0};
+    const char *typingChars_ {nullptr};
     SymbolGroup typingSymbolGroup_ {AuthForm::SymbolGroup::alphaLowerCase};
 
-    char password[MASTER_PASSWORD_SIZE];
-    // TODO: where to take salt? shoud this form do that?
+    char password_[MASTER_PASSWORD_SIZE];
 };
 
 #endif // !__AUTH_FORM__

@@ -1,19 +1,35 @@
 #include "auth_form.hpp"
+#include "layout.hpp"
 #include "user_inputs.hpp"
+#include "oled.hpp"
+#include "auth.hpp"
 
-AuthForm::AuthForm(Oled &oled, UserInputs &userInputs)
+
+static const char alphaLowerChars[] = "abcdefghijklmnopqrstuvwxyz"; 
+static const char alphaUpperChars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; /// must be the same lenth as alphaLowerChars and sequence of symbols must be the same
+static const char digitChars[] = "0123456789"; 
+static const char specialChars[] = " /?><,:';|}{][+_)(*&^%$#!~=-@. ";
+
+AuthForm::AuthForm(Oled &oled, UserInputs &userInputs, Authenticator& auth)
     : oled_(oled)
     , userInputs_(userInputs)
+    , auth_(auth)
+    , typingChars_(alphaLowerChars)
 {
+    memset(password_, 0, sizeof(password_));
 }
 
-void AuthForm::init(BlindCall switchMenuCb)
+void
+AuthForm::init(BlindCall switchMenuCb)
 {
     switchMenuCb_ = switchMenuCb;
 }
 
-void AuthForm::activate()
+void
+AuthForm::activate()
 {
+    memset(password_, 0, sizeof(password_));
+
     oled_.home();
 
     userInputs_.set(UserInputs::Button::circle, BlindCall::make(this, &AuthForm::commitPassword));
@@ -22,8 +38,11 @@ void AuthForm::activate()
     userInputs_.set(UserInputs::Button::triangle, BlindCall::make(this, &AuthForm::eraseLastSymbol));
 }
 
-void AuthForm::deactivate()
+void
+AuthForm::deactivate()
 {
+    memset(password_, 0, sizeof(password_));
+
     userInputs_.unset(UserInputs::Button::circle);
     userInputs_.unset(UserInputs::Button::cross);
     userInputs_.unset(UserInputs::Button::square);
@@ -33,4 +52,102 @@ void AuthForm::deactivate()
     userInputs_.unset(UserInputs::Encoder::rotary);
 
     oled_.clear();
+}
+
+// AuthForm::SymbolGroup& 
+// operator++(AuthForm::SymbolGroup& g)
+// {
+//     uint8_t next = (static_cast<uint8_t>(g) + 1) % static_cast<uint8_t>(AuthForm::SymbolGroup::COUNT);
+//     g = static_cast<AuthForm::SymbolGroup>(next);
+//     return g;
+// }
+
+void
+AuthForm::chooseNextSymbolGroup()
+{
+    switch (typingSymbolGroup_) {
+        case SymbolGroup::alphaLowerCase:
+            typingSymbolGroup_ = SymbolGroup::alphaUpperCase;
+            typingChars_ = alphaUpperChars;
+            break;
+        case SymbolGroup::alphaUpperCase:
+            typingSymbolIdx_ = 0;
+            typingSymbolGroup_ = SymbolGroup::digit;
+            typingChars_ = digitChars;
+            break;
+        case SymbolGroup::digit:
+            typingSymbolIdx_ = 0;
+            typingSymbolGroup_ = SymbolGroup::specials;
+            typingChars_ = specialChars;
+            break;
+        case SymbolGroup::specials:
+            typingSymbolIdx_ = 0;
+            typingSymbolGroup_ = SymbolGroup::alphaLowerCase;
+            typingChars_ = alphaLowerChars;
+            break;
+        default:
+            break;
+    };
+}
+
+void
+AuthForm::chooseNextSymbol()
+{
+    auto next = (typingSymbolIdx_ + 1) % typingGroupLen();
+    typingSymbolIdx_ = next;
+}
+
+void
+AuthForm::choosePrevSymbol()
+{
+    typingSymbolIdx_ = typingSymbolIdx_ > 0 ? typingSymbolIdx_ - 1 : typingGroupLen() - 1;
+}
+
+uint8_t
+AuthForm::typingGroupLen() const
+{
+    // " - 1" is needed because strlen don't take ending zero but
+    // statement like "sizeof(array) / sizeof(array[0])" count last '\0' too
+    switch (typingSymbolGroup_) {
+        case SymbolGroup::alphaLowerCase:
+            return sizeof(alphaLowerChars) / sizeof(alphaLowerChars[0]) - 1;
+        case SymbolGroup::alphaUpperCase:
+            return sizeof(alphaUpperChars) / sizeof(alphaUpperChars[0]) - 1;
+        case SymbolGroup::digit:
+            return sizeof(digitChars) / sizeof(digitChars[0]) - 1;
+        case SymbolGroup::specials:
+            return sizeof(specialChars) / sizeof(specialChars[0]) - 1;
+        default:
+            return 0;
+            break;
+    };
+}
+
+void
+AuthForm::eraseLastSymbol()
+{
+    const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
+    password_[len - 1] = '\0';
+}
+
+void
+AuthForm::commitSymbol()
+{
+    const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
+    password_[len] = typingSymbol();
+    password_[len + 1] = '\0';
+}
+
+void
+AuthForm::commitPassword()
+{
+    if (auth_.auth(password_, strnlen(password_, MASTER_PASSWORD_SIZE - 1))) {
+        switchMenuCb_();
+    }
+}
+
+char
+AuthForm::typingSymbol() const
+{
+    return typingChars_[typingSymbolIdx_];
 }
