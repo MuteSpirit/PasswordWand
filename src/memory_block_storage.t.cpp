@@ -1,3 +1,4 @@
+#include <cstddef>
 #if defined(EPOXY_DUINO)
 #include "memory_block_storage.cpp"
 #include <AUnit.h>
@@ -5,7 +6,7 @@
 class MemoryBlockStorageTestHelper
 {
 public:
-    template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+    template<size_t fullSizeBytes, size_t pageSizeBytes>
     static uint8_t *get(MemoryBlockStorage<fullSizeBytes, pageSizeBytes> &store) {
         return store.store_;
     }

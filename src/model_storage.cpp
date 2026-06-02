@@ -1,91 +1,178 @@
 #include "model_storage.hpp"
 #include "model.hpp"
+#include "block_storage.hpp"
+#include <cstdint>
+#include <cstddef>
+#include <cstring>
+#include <sys/types.h>
 
-template<typename T>
-bool
-ModelStorage::is_exist(const char* key)
-{
-    (void)(key);
-    return false;
-}
-
-template<typename T>
-uint16_t
-ModelStorage::count()
-{
-    return 0;
-}
-
-template<typename T>
-bool
-ModelStorage::get(const uint8_t idx, T &t)
-{
-    (void)(idx);
-    (void)(t);
-    return false;
-}
-
-template<typename T>
-bool
-ModelStorage::get_next(const uint8_t from, T &t, uint16_t &idx)
-{
-    (void)(from);
-    (void)(idx);
-    (void)(t);
-    return false;
-}
-
-template<typename T>
-bool
-ModelStorage::get_prev(const uint8_t from, T &t, uint16_t &idx)
-{
-    (void)(from);
-    (void)(idx);
-    (void)(t);
-    return false;
-}
-
-template<typename T>
-bool
-ModelStorage::add(const T &t)
-{
-    (void)(t);
-    return false;
-}
-
-template<typename T>
-bool
-ModelStorage::del(const char* key)
-{
-    (void)(key);
-    return false;
-}
 
 // Let's instantiate for Account to keep control on ModelStorage class usage
+template class ModelStorage<Account>;
 
-template bool ModelStorage::is_exist<Account>(const char* key);
-
-template uint16_t ModelStorage::count<Account>();
-
-template bool ModelStorage::get<Account>(const uint8_t idx, Account &acc);
-
-template bool ModelStorage::get_next<Account>(const uint8_t from, Account &acc, uint16_t &idx);
-
-template bool ModelStorage::get_prev<Account>(const uint8_t from, Account &acc, uint16_t &idx);
-
-template bool ModelStorage::add<Account>(const Account &acc);
-
-template bool ModelStorage::del<Account>(const char* key);
-
-template<>
-uint32_t
-ModelStorage::min_addr<Account>()
+template<typename Object>
+bool
+ModelStorage<Object>::is_exist(const char* key)
 {
-    return 0;
+    Object o;  
+    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
+        if (is_free_account(i)) {
+            continue;
+        }
+
+        bs_.read(get_key_addr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
+
+        if (!strncmp(key, get_key_ptr(o), get_key_size<Object>())) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-template<>
-uint32_t ModelStorage::max_addr<Account>()
+template<typename Object>
+bool
+ModelStorage<Object>::is_ok_idx(const ObjIndex idx)
 {
-    return 256 * sizeof(Account);
+    size_t startAddr = idx2addr(idx);
+    return bs_.is_addr_ok(startAddr) && (bs_.is_addr_ok(startAddr + sizeof(Object) - sizeof(ObjInStorage::commitFlag_)));
+}
+
+template<typename Object>
+size_t
+ModelStorage<Object>::get_key_addr(const ObjIndex idx)
+{
+    return idx2addr(idx) + get_key_offset<Object>();
+}
+
+template<typename Object>
+typename ModelStorage<Object>::ObjIndex
+ModelStorage<Object>::count()
+{
+    ObjIndex c = 0;
+    for (ObjIndex idx = 0; is_ok_idx(idx); ++idx) {
+        if (!is_free_account(idx)) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::is_free_account(const ObjIndex idx)
+{
+    return static_cast<uint8_t>(ObjInStorage::Committment::free) == bs_.read(idx2addr(idx) + offsetof(ObjInStorage, commitFlag_));
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::get(const ObjIndex idx, Object &o)
+{
+    bs_.read(idx2addr(idx), o);
+    return true;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::get_next(const ObjIndex from, Object &o, ObjIndex &idx)
+{
+    for (ObjIndex i = from + 1; is_ok_idx(i); ++i) {
+        if (!is_free_account(i)) {
+            idx = i;
+            get(i, o);
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::get_prev(const ObjIndex from, Object &o, ObjIndex &idx)
+{
+    for (ObjIndex i = from; i > 0; --i) {  // if set "i >= 0" as stop condition then index 0 will be missed
+        ObjIndex pos = i > 0 ? i - 1 : 0;
+
+        if (!is_free_account(pos)) {
+            idx = pos;
+            get(pos, o);
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::add(const Object &o)
+{
+    ObjIndex idx = 0;
+    if (!get_free_object_index(idx)) {
+        return false;
+    }
+
+    bs_.write(idx2addr(idx), o);
+    bs_.write(idx2addr(idx) + offsetof(ObjInStorage, commitFlag_), 
+              static_cast<uint8_t>(ObjInStorage::Committment::comitted));
+    return true;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::get_free_object_index(ObjIndex &idx)
+{
+    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
+        if (is_free_account(i)) {
+            idx = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename Object>
+bool
+ModelStorage<Object>::del(const char* key)
+{
+    Object o;
+
+    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
+        if (is_free_account(i)) {
+            continue;
+        }
+
+        bs_.read(get_key_addr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
+
+        if (!strncmp(key, get_key_ptr(o), get_key_size<Object>())) {
+            // TODO: make zeroing Account slot for more secure
+            // TODO: add count of writes to slot to stop use it after EEPROM max read/write operations limit
+            bs_.write(idx2addr(i) + offsetof(ObjInStorage, commitFlag_), 
+                      static_cast<uint8_t>(ObjInStorage::Committment::free));
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<typename Object>
+size_t
+ModelStorage<Object>::idx2addr(const ObjIndex idx) const
+{
+    return min_addr() + idx * sizeof(ObjInStorage);
+}
+
+template<typename Object>
+size_t
+ModelStorage<Object>::min_addr() const
+{
+    return 0; /// debug
+}
+
+template<typename Object>
+size_t
+ModelStorage<Object>::max_addr() const
+{
+    return 256 * sizeof(Account);   /// debug
 }

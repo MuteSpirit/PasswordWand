@@ -4,44 +4,44 @@
 
 #define RESET_FLAG (0xff)
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 bool
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::is_addr_ok(const uint32_t addr) const
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::is_addr_ok(const size_t addr) const
 {
     return addr < fullSizeBytes - 1 /* init flag size */;
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::MemoryBlockStorage()
     : store_{0}
 {
     setResetFlag();
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 uint8_t
 MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::getResetFlag()
 {
     return read(fullSizeBytes - 1);
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
 MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::setResetFlag()
 {
     store_[fullSizeBytes - 1] = RESET_FLAG;
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 uint8_t
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::read(const uint32_t addr) 
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::read(const size_t addr) 
 {
     return store_[addr];
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const uint32_t addr, const uint8_t b) 
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const size_t addr, const uint8_t b) 
 {
     if (addr >= fullSizeBytes - 1) {
         return;
@@ -49,25 +49,25 @@ MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const uint32_t addr, con
     store_[addr] = b;
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::read(const uint32_t addr, uint8_t *buf, const uint32_t size) 
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::read(const size_t addr, uint8_t *buf, const size_t size) 
 {
     for (uint32_t i = addr, j = 0; i < addr + size && i < fullSizeBytes; ++i, ++j) {
         buf[j] = read(i);
     }
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const uint32_t addr, const uint8_t *buf, const uint32_t size) 
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const size_t addr, const uint8_t *buf, const size_t size) 
 {
     for (uint32_t i = addr, j = 0; j < size && i < fullSizeBytes; ++j, ++i) {
         write(i, buf[j]);
     }
 }
 
-template<uint32_t fullSizeBytes, uint32_t pageSizeBytes>
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
 MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::factory_reset()
 {

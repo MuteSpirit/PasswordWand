@@ -18,13 +18,13 @@ public:
 public:
     bool init(const uint8_t *key, const uint8_t keySize);
 
-    virtual bool is_addr_ok(const uint32_t addr) const override;
+    virtual bool is_addr_ok(const size_t addr) const override;
 
-    virtual uint8_t read(const uint32_t addr) override;
-    virtual void write(const uint32_t addr, const uint8_t b) override;
+    virtual uint8_t read(const size_t addr) override;
+    virtual void write(const size_t addr, const uint8_t b) override;
 
-    virtual void read(const uint32_t addr, uint8_t *buf, const uint32_t size) override;
-    virtual void write(const uint32_t addr, const uint8_t *buf, const uint32_t size) override;
+    virtual void read(const size_t addr, uint8_t *buf, const size_t size) override;
+    virtual void write(const size_t addr, const uint8_t *buf, const size_t size) override;
 
     virtual void factory_reset() override;
 

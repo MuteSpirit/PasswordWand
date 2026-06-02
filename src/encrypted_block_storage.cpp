@@ -15,13 +15,13 @@ EncryptedBlockStorage::init(const uint8_t *key, const uint8_t keySize)
 }
 
 bool
-EncryptedBlockStorage::is_addr_ok(const uint32_t addr) const
+EncryptedBlockStorage::is_addr_ok(const size_t addr) const
 {
     return bs_.is_addr_ok(addr);
 }
 
 uint8_t
-EncryptedBlockStorage::read(const uint32_t addr)
+EncryptedBlockStorage::read(const size_t addr)
 {
     if (decryptIdx_ < 0  // no decryption before
         || (blockStartAddr_ + 16 <= addr || addr < blockStartAddr_))
@@ -37,7 +37,7 @@ EncryptedBlockStorage::read(const uint32_t addr)
 }
 
 void
-EncryptedBlockStorage::write(const uint32_t addr, const uint8_t b)
+EncryptedBlockStorage::write(const size_t addr, const uint8_t b)
 {
     (void)(addr);
     (void)(b);
@@ -45,7 +45,7 @@ EncryptedBlockStorage::write(const uint32_t addr, const uint8_t b)
 }
 
 void
-EncryptedBlockStorage::read(const uint32_t addr, uint8_t *buf, const uint32_t size)
+EncryptedBlockStorage::read(const size_t addr, uint8_t *buf, const size_t size)
 {
     (void)(addr);
     (void)(buf);
@@ -54,7 +54,7 @@ EncryptedBlockStorage::read(const uint32_t addr, uint8_t *buf, const uint32_t si
 }
 
 void
-EncryptedBlockStorage::write(const uint32_t addr, const uint8_t *buf, const uint32_t size)
+EncryptedBlockStorage::write(const size_t addr, const uint8_t *buf, const size_t size)
 {
     (void)(addr);
     (void)(buf);
