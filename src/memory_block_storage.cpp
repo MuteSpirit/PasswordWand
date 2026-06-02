@@ -6,7 +6,7 @@
 
 template<size_t fullSizeBytes, size_t pageSizeBytes>
 bool
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::is_addr_ok(const size_t addr) const
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::isAddrOk(const size_t addr) const
 {
     return addr < fullSizeBytes - 1 /* init flag size */;
 }
@@ -69,7 +69,7 @@ MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::write(const size_t addr, const
 
 template<size_t fullSizeBytes, size_t pageSizeBytes>
 void
-MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::factory_reset()
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::factoryReset()
 {
     memset(store_, 0, fullSizeBytes);
     setResetFlag();

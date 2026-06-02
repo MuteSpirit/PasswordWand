@@ -74,7 +74,7 @@ test(mem_blk_store_factory_reset)
     store.write(0x40,     0x2);
     store.write(0x80 - 2, 0x3);
 
-    store.factory_reset();
+    store.factoryReset();
 
     assertEqual(0, store.read(0));
     assertEqual(0, store.read(0x40));

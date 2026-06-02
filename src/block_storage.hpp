@@ -8,7 +8,7 @@
 class BlockStorage
 {
 public:
-    virtual bool is_addr_ok(const size_t addr) const = 0;
+    virtual bool isAddrOk(const size_t addr) const = 0;
 
     virtual uint8_t read(const size_t addr) = 0;
     virtual void write(const size_t addr, const uint8_t b) = 0;
@@ -22,7 +22,7 @@ public:
     template<typename T>
     void read(const size_t addr, T& t);
 
-    virtual void factory_reset() = 0;
+    virtual void factoryReset() = 0;
 
     virtual ~BlockStorage() {};
 

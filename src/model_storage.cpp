@@ -12,15 +12,15 @@ template class ModelStorage<Account>;
 
 template<typename Object>
 bool
-ModelStorage<Object>::is_exist(const char* key)
+ModelStorage<Object>::isExist(const char* key)
 {
     Object o;  
-    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
-        if (is_free_account(i)) {
+    for (ObjIndex i = 0; isOkIdx(i); ++i) {
+        if (isFreeAccount(i)) {
             continue;
         }
 
-        bs_.read(get_key_addr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
+        bs_.read(getKeyAddr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
 
         if (!strncmp(key, get_key_ptr(o), get_key_size<Object>())) {
             return true;
@@ -32,15 +32,15 @@ ModelStorage<Object>::is_exist(const char* key)
 
 template<typename Object>
 bool
-ModelStorage<Object>::is_ok_idx(const ObjIndex idx)
+ModelStorage<Object>::isOkIdx(const ObjIndex idx)
 {
     size_t startAddr = idx2addr(idx);
-    return bs_.is_addr_ok(startAddr) && (bs_.is_addr_ok(startAddr + sizeof(Object) - sizeof(ObjInStorage::commitFlag_)));
+    return bs_.isAddrOk(startAddr) && (bs_.isAddrOk(startAddr + sizeof(Object) - sizeof(ObjInStorage::commitFlag_)));
 }
 
 template<typename Object>
 size_t
-ModelStorage<Object>::get_key_addr(const ObjIndex idx)
+ModelStorage<Object>::getKeyAddr(const ObjIndex idx)
 {
     return idx2addr(idx) + get_key_offset<Object>();
 }
@@ -50,8 +50,8 @@ typename ModelStorage<Object>::ObjIndex
 ModelStorage<Object>::count()
 {
     ObjIndex c = 0;
-    for (ObjIndex idx = 0; is_ok_idx(idx); ++idx) {
-        if (!is_free_account(idx)) {
+    for (ObjIndex idx = 0; isOkIdx(idx); ++idx) {
+        if (!isFreeAccount(idx)) {
             ++c;
         }
     }
@@ -60,7 +60,7 @@ ModelStorage<Object>::count()
 
 template<typename Object>
 bool
-ModelStorage<Object>::is_free_account(const ObjIndex idx)
+ModelStorage<Object>::isFreeAccount(const ObjIndex idx)
 {
     return static_cast<uint8_t>(ObjInStorage::Committment::free) == bs_.read(idx2addr(idx) + offsetof(ObjInStorage, commitFlag_));
 }
@@ -75,10 +75,10 @@ ModelStorage<Object>::get(const ObjIndex idx, Object &o)
 
 template<typename Object>
 bool
-ModelStorage<Object>::get_next(const ObjIndex from, Object &o, ObjIndex &idx)
+ModelStorage<Object>::getNext(const ObjIndex from, Object &o, ObjIndex &idx)
 {
-    for (ObjIndex i = from + 1; is_ok_idx(i); ++i) {
-        if (!is_free_account(i)) {
+    for (ObjIndex i = from + 1; isOkIdx(i); ++i) {
+        if (!isFreeAccount(i)) {
             idx = i;
             get(i, o);
             return true;
@@ -89,12 +89,12 @@ ModelStorage<Object>::get_next(const ObjIndex from, Object &o, ObjIndex &idx)
 
 template<typename Object>
 bool
-ModelStorage<Object>::get_prev(const ObjIndex from, Object &o, ObjIndex &idx)
+ModelStorage<Object>::getPrev(const ObjIndex from, Object &o, ObjIndex &idx)
 {
     for (ObjIndex i = from; i > 0; --i) {  // if set "i >= 0" as stop condition then index 0 will be missed
         ObjIndex pos = i > 0 ? i - 1 : 0;
 
-        if (!is_free_account(pos)) {
+        if (!isFreeAccount(pos)) {
             idx = pos;
             get(pos, o);
             return true;
@@ -108,7 +108,7 @@ bool
 ModelStorage<Object>::add(const Object &o)
 {
     ObjIndex idx = 0;
-    if (!get_free_object_index(idx)) {
+    if (!getFreeObjectIndex(idx)) {
         return false;
     }
 
@@ -120,10 +120,10 @@ ModelStorage<Object>::add(const Object &o)
 
 template<typename Object>
 bool
-ModelStorage<Object>::get_free_object_index(ObjIndex &idx)
+ModelStorage<Object>::getFreeObjectIndex(ObjIndex &idx)
 {
-    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
-        if (is_free_account(i)) {
+    for (ObjIndex i = 0; isOkIdx(i); ++i) {
+        if (isFreeAccount(i)) {
             idx = i;
             return true;
         }
@@ -137,12 +137,12 @@ ModelStorage<Object>::del(const char* key)
 {
     Object o;
 
-    for (ObjIndex i = 0; is_ok_idx(i); ++i) {
-        if (is_free_account(i)) {
+    for (ObjIndex i = 0; isOkIdx(i); ++i) {
+        if (isFreeAccount(i)) {
             continue;
         }
 
-        bs_.read(get_key_addr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
+        bs_.read(getKeyAddr(i), reinterpret_cast<uint8_t*>(get_key_ptr(o)), get_key_size<Object>());
 
         if (!strncmp(key, get_key_ptr(o), get_key_size<Object>())) {
             // TODO: make zeroing Account slot for more secure

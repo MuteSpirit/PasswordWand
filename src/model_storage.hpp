@@ -19,13 +19,13 @@ public:
     ModelStorage(BlockStorage &bs) : bs_(bs) {};
     ~ModelStorage() = default;
 
-    bool is_exist(const char* key);
+    bool isExist(const char* key);
 
     ObjIndex count();
 
     bool get(const ObjIndex idx, Object &t);
-    bool get_next(const ObjIndex from, Object &t, ObjIndex &idx);
-    bool get_prev(const ObjIndex from, Object &t, ObjIndex &idx);
+    bool getNext(const ObjIndex from, Object &t, ObjIndex &idx);
+    bool getPrev(const ObjIndex from, Object &t, ObjIndex &idx);
     bool add(const Object &t);
     bool del(const char* key);
 
@@ -49,11 +49,11 @@ protected:
     };
 
 protected:
-    bool is_ok_idx(const ObjIndex idx);
-    bool is_free_account(const ObjIndex idx);
-    bool get_free_object_index(ObjIndex &idx);
+    bool isOkIdx(const ObjIndex idx);
+    bool isFreeAccount(const ObjIndex idx);
+    bool getFreeObjectIndex(ObjIndex &idx);
     size_t idx2addr(const ObjIndex idx) const;
-    size_t get_key_addr(const ObjIndex idx);
+    size_t getKeyAddr(const ObjIndex idx);
     size_t min_addr() const; // TODO: move into BlockStorage
     size_t max_addr() const; // TODO: move into BlockStorage
 

@@ -3,8 +3,7 @@
 #include "model_storage.cpp"
 #include "memory_block_storage.cpp"
 #include <AUnitVerbose.h>
-#include "model.hpp"
-#include <string.h>
+#include <cstring>
 
 test(model_storage_ctor)
 {
@@ -15,24 +14,26 @@ test(model_storage_ctor)
 test(model_storage_add)
 {
     MemoryBlockStorage<1024, 64> bs;
-    bs.factory_reset();
+    bs.factoryReset();
 
     ModelStorage<Account> m(bs);
 
     Account acc {.name = "n", .username = "u", .password = "p"};
 
     assertEqual(0, m.count());
-    assertFalse(m.is_exist(acc.name));
+    assertFalse(m.isExist(acc.name));
 
     assertTrue(m.add(acc));
 
     assertEqual(1, m.count());
-    assertTrue(m.is_exist(acc.name));
+    assertTrue(m.isExist(acc.name));
 };
 
 test(model_storage_get)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n", .username = "u", .password = "p"};
@@ -48,6 +49,8 @@ test(model_storage_get)
 test(model_storage_get_next_prev)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n0", .username = "u0", .password = "p0"};
@@ -62,7 +65,7 @@ test(model_storage_get_next_prev)
     uint16_t idx = 0;
     //
     // Next
-    assertTrue(m.get_next(0, acc, idx));
+    assertTrue(m.getNext(0, acc, idx));
 
     assertEqual(1, idx);
     assertStringCaseEqual(acc1.name, acc.name);
@@ -70,7 +73,7 @@ test(model_storage_get_next_prev)
     // Prev
     memset(&acc, 0, sizeof(acc));
 
-    assertTrue(m.get_prev(idx, acc, idx));
+    assertTrue(m.getPrev(idx, acc, idx));
 
     assertEqual(0, idx);
     assertStringCaseEqual(acc0.name, acc.name);
@@ -79,6 +82,8 @@ test(model_storage_get_next_prev)
 test(model_storage_del_one_object)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n0", .username = "u0", .password = "p0"};
@@ -92,6 +97,8 @@ test(model_storage_del_one_object)
 test(model_storage_del_three_objects_fifo)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n0", .username = "u0", .password = "p0"};
@@ -117,6 +124,8 @@ test(model_storage_del_three_objects_fifo)
 test(model_storage_del_three_objects_lifo)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n0", .username = "u0", .password = "p0"};
@@ -140,6 +149,8 @@ test(model_storage_del_three_objects_lifo)
 test(model_storage_get_next_prev_over_free_spot)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
+
     ModelStorage<Account> m(bs);
 
     Account acc0 {.name = "n0", .username = "u0", .password = "p0"};
@@ -158,7 +169,7 @@ test(model_storage_get_next_prev_over_free_spot)
     uint16_t idx = 0;
     //
     // Next
-    assertTrue(m.get_next(0, acc, idx));
+    assertTrue(m.getNext(0, acc, idx));
 
     assertEqual(2, idx);
     assertStringCaseEqual(acc2.name, acc.name);
@@ -166,7 +177,7 @@ test(model_storage_get_next_prev_over_free_spot)
     // Prev
     memset(&acc, 0, sizeof(acc));
 
-    assertTrue(m.get_prev(idx, acc, idx));
+    assertTrue(m.getPrev(idx, acc, idx));
 
     assertEqual(0, idx);
     assertStringCaseEqual(acc0.name, acc.name);
@@ -175,7 +186,7 @@ test(model_storage_get_next_prev_over_free_spot)
 test(model_storage_add_del_and_add_to_fill_free_spot)
 {
     MemoryBlockStorage<1024, 64> bs;
-    bs.factory_reset();
+    bs.factoryReset();
 
     ModelStorage<Account> m(bs);
 
@@ -200,7 +211,7 @@ test(model_storage_add_del_and_add_to_fill_free_spot)
     uint16_t idx = 0;
     //
     // Next
-    assertTrue(m.get_next(0, acc, idx));
+    assertTrue(m.getNext(0, acc, idx));
 
     assertEqual(1, idx);
     assertStringCaseEqual(acc3.name, acc.name);
@@ -209,6 +220,7 @@ test(model_storage_add_del_and_add_to_fill_free_spot)
 test(model_storage_is_persist)
 {
     MemoryBlockStorage<1024, 64> bs;
+    bs.factoryReset();
 
     Account acc {.name = "n", .username = "u", .password = "p"};
     // a'la first device with block storage initialization
@@ -223,7 +235,7 @@ test(model_storage_is_persist)
         ModelStorage<Account> m(bs);
 
         assertEqual(1, m.count());
-        assertTrue(m.is_exist(acc.name));
+        assertTrue(m.isExist(acc.name));
     }
 }
 #endif // EPOXY_DUINO

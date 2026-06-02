@@ -15,9 +15,9 @@ EncryptedBlockStorage::init(const uint8_t *key, const uint8_t keySize)
 }
 
 bool
-EncryptedBlockStorage::is_addr_ok(const size_t addr) const
+EncryptedBlockStorage::isAddrOk(const size_t addr) const
 {
-    return bs_.is_addr_ok(addr);
+    return bs_.isAddrOk(addr);
 }
 
 uint8_t
@@ -62,7 +62,7 @@ EncryptedBlockStorage::write(const size_t addr, const uint8_t *buf, const size_t
 }
 
 void
-EncryptedBlockStorage::factory_reset()
+EncryptedBlockStorage::factoryReset()
 {
-    bs_.factory_reset();
+    bs_.factoryReset();
 }
