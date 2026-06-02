@@ -26,8 +26,8 @@ public:
     PasswordWandAuth();
 
     void init(const char *salt, const uint8_t saltSize,
-                     const uint8_t *saltedPasswordHash, const uint8_t saltedPasswordHashSize);
-
+              const uint8_t *saltedPasswordHash, const uint8_t saltedPasswordHashSize);
+    /// Max supported password length is "hashSize", the rest tail will be cut.
     virtual bool auth(const char *password, const uint8_t len) override;
 
 protected:
