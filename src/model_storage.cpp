@@ -160,19 +160,5 @@ template<typename Object>
 size_t
 ModelStorage<Object>::idx2addr(const ObjIndex idx) const
 {
-    return min_addr() + idx * sizeof(ObjInStorage);
-}
-
-template<typename Object>
-size_t
-ModelStorage<Object>::min_addr() const
-{
-    return 0; /// debug
-}
-
-template<typename Object>
-size_t
-ModelStorage<Object>::max_addr() const
-{
-    return 256 * sizeof(Account);   /// debug
+    return bs_.minAddr() + idx * sizeof(ObjInStorage);
 }

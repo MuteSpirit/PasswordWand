@@ -14,6 +14,18 @@ EncryptedBlockStorage::init(const uint8_t *key, const uint8_t keySize)
     return aes_.setKey(key, keySize);
 }
 
+size_t
+EncryptedBlockStorage::minAddr() const
+{
+    return bs_.minAddr();
+}
+
+size_t
+EncryptedBlockStorage::maxAddr() const
+{
+    return bs_.maxAddr();
+}
+
 bool
 EncryptedBlockStorage::isAddrOk(const size_t addr) const
 {

@@ -10,6 +10,9 @@ template<size_t fullSizeBytes, size_t pageSizeBytes>
 class MemoryBlockStorage : public BlockStorage
 {
 public:
+    virtual size_t minAddr() const override;
+    virtual size_t maxAddr() const override;
+
     virtual bool isAddrOk(const size_t addr) const override;
 
     virtual uint8_t read(const size_t addr) override;

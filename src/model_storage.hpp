@@ -54,8 +54,6 @@ protected:
     bool getFreeObjectIndex(ObjIndex &idx);
     size_t idx2addr(const ObjIndex idx) const;
     size_t getKeyAddr(const ObjIndex idx);
-    size_t min_addr() const; // TODO: move into BlockStorage
-    size_t max_addr() const; // TODO: move into BlockStorage
 
 protected:
     BlockStorage &bs_;

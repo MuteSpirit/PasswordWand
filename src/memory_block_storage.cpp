@@ -1,14 +1,28 @@
-#include <string.h>
+#include <cstring>
 
 #include "memory_block_storage.hpp"
 
 #define RESET_FLAG (0xff)
 
 template<size_t fullSizeBytes, size_t pageSizeBytes>
+size_t
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::minAddr() const
+{
+    return 0;
+}
+
+template<size_t fullSizeBytes, size_t pageSizeBytes>
+size_t
+MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::maxAddr() const
+{
+    return fullSizeBytes - 1 /* init flag size */;
+}
+
+template<size_t fullSizeBytes, size_t pageSizeBytes>
 bool
 MemoryBlockStorage<fullSizeBytes, pageSizeBytes>::isAddrOk(const size_t addr) const
 {
-    return addr < fullSizeBytes - 1 /* init flag size */;
+    return minAddr() <= addr && addr < maxAddr();
 }
 
 template<size_t fullSizeBytes, size_t pageSizeBytes>

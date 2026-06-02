@@ -18,6 +18,9 @@ public:
 public:
     bool init(const uint8_t *key, const uint8_t keySize);
 
+    virtual size_t minAddr() const override;
+    virtual size_t maxAddr() const override;
+
     virtual bool isAddrOk(const size_t addr) const override;
 
     virtual uint8_t read(const size_t addr) override;

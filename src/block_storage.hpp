@@ -8,6 +8,9 @@
 class BlockStorage
 {
 public:
+    virtual size_t minAddr() const = 0;
+    virtual size_t maxAddr() const = 0;
+
     virtual bool isAddrOk(const size_t addr) const = 0;
 
     virtual uint8_t read(const size_t addr) = 0;
