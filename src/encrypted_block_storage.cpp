@@ -1,17 +1,24 @@
 #include "encrypted_block_storage.hpp"
 
-#include <SHA256.h>
-
 EncryptedBlockStorage::EncryptedBlockStorage(BlockStorage &bs)
     : bs_(bs)
+    , blockStartAddr_(bs_.minAddr())
 {
 }
 
-/// Returns false if the key length is not supported, or the key is somehow "weak" and unusable by this cipher.
-bool
-EncryptedBlockStorage::init(const uint8_t *key, const uint8_t keySize)
+EncryptedBlockStorage::~EncryptedBlockStorage()
 {
-    return aes_.setKey(key, keySize);
+    aes_.clear();
+}
+
+bool
+EncryptedBlockStorage::init(const uint8_t *key, const size_t keySize)
+{
+    if (aes_.setKey(key, keySize)) {
+        aesKeySet_ = true;
+        return true;
+    }
+    return false;
 }
 
 size_t
@@ -35,12 +42,45 @@ EncryptedBlockStorage::isAddrOk(const size_t addr) const
 uint8_t
 EncryptedBlockStorage::read(const size_t addr)
 {
-    if (decryptIdx_ < 0  // no decryption before
-        || (blockStartAddr_ + 16 <= addr || addr < blockStartAddr_))
-    { // we should perform another decryption
+    if (!aesKeySet_) {
+        return 0;
+    }
+
+    if (addr < blockStartAddr_ || blockStartAddr_ + AES_BLOCK_SIZE <= addr) {
+        // read outside cached block should happen
+        // so it's needed to flash cached block into underline block storage
+        // before start work with another one
+
+        if (cachedBlockIsDirty_) {
+            uint8_t block[AES_BLOCK_SIZE] = {0};
+            aes_.encryptBlock(block, decryptedBlock_);
+            bs_.write(blockStartAddr_, block, AES_BLOCK_SIZE);
+        }
+
+        decryptIdx_ = -1;
+        cachedBlockIsDirty_ = false;
+    }
+
+    if (decryptIdx_ < 0) { // no decryption before
+        // we should perform another decryption
         blockStartAddr_ = (addr / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
-        bs_.read(blockStartAddr_, inputBlock_, AES_BLOCK_SIZE);
-        aes_.decryptBlock(decryptedBlock_, inputBlock_);
+
+        uint8_t block[AES_BLOCK_SIZE] = {0};
+        bs_.read(blockStartAddr_, block, AES_BLOCK_SIZE);
+        //
+        // If we cannot say is block encrypted or plain on underline block storage
+        // then it'll have a mess instead of data after "decryption" plain data
+        // So assume that block filled by zeros is plain.
+        bool wiped = true;
+        for (size_t i = 0; i < AES_BLOCK_SIZE; ++i) {
+            if (block[i]) {
+                wiped = false;
+                break;
+            }
+        }
+        if (!wiped) {
+            aes_.decryptBlock(decryptedBlock_, block);
+        }
     }
 
     decryptIdx_ = addr - blockStartAddr_;
@@ -51,26 +91,74 @@ EncryptedBlockStorage::read(const size_t addr)
 void
 EncryptedBlockStorage::write(const size_t addr, const uint8_t b)
 {
-    (void)(addr);
-    (void)(b);
-    // Let's not support that
+    if (!aesKeySet_) {
+        return;
+    }
+
+    if (addr < blockStartAddr_ || blockStartAddr_ + AES_BLOCK_SIZE <= addr) {
+        // write outside cached block should happen
+        // so it's needed to flash cached block into underline block storage
+        // before start work with another one
+
+        if (cachedBlockIsDirty_) {
+            uint8_t block[AES_BLOCK_SIZE] = {0};
+            aes_.encryptBlock(block, decryptedBlock_);
+            bs_.write(blockStartAddr_, block, AES_BLOCK_SIZE);
+
+            cachedBlockIsDirty_ = false;
+        }
+        decryptIdx_ = -1;
+    }
+
+    if (decryptIdx_ < 0) { // no decryption before
+        blockStartAddr_ = (addr / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
+
+        // fill "decryptedBlock_" with original data located at underline data block
+        uint8_t block[AES_BLOCK_SIZE] = {0};
+        bs_.read(blockStartAddr_, block, AES_BLOCK_SIZE);
+        //
+        // If we cannot say is block encrypted or plain on underline block storage
+        // then it'll have a mess instead of data after "decryption" plain data
+        // So assume that block filled by zeros is plain.
+        bool wiped = true;
+        for (size_t i = 0; i < AES_BLOCK_SIZE; ++i) {
+            if (block[i]) {
+                wiped = false;
+                break;
+            }
+        }
+        if (!wiped) {
+            aes_.decryptBlock(decryptedBlock_, block);
+        }
+    }
+
+    decryptIdx_ = addr - blockStartAddr_;
+    decryptedBlock_[decryptIdx_] = b;
+    cachedBlockIsDirty_ = true;
 }
 
 void
 EncryptedBlockStorage::read(const size_t addr, uint8_t *buf, const size_t size)
 {
-    (void)(addr);
-    (void)(buf);
-    (void)(size);
-    // Find an encrypted block  for "addr"
+    if (!aesKeySet_) {
+        return;
+    }
+
+    for (size_t i = 0; i < size; ++i) {
+        buf[i] = read(addr + i);
+    }
 }
 
 void
 EncryptedBlockStorage::write(const size_t addr, const uint8_t *buf, const size_t size)
 {
-    (void)(addr);
-    (void)(buf);
-    (void)(size);
+    if (!aesKeySet_) {
+        return;
+    }
+
+    for (size_t i = 0; i < size; ++i) {
+        write(addr + i, buf[i]);
+    }
 }
 
 void
