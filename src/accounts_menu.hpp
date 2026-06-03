@@ -2,19 +2,21 @@
 #ifndef __ACCOUNTS_MENU_HPP__
 #define __ACCOUNTS_MENU_HPP__
 
-#include <inttypes.h>
-#include "model.hpp"
 #include "menu.hpp"
-#include "board.hpp"
+#include "model.hpp"
 
 class Settings;
 class UserInputs;
+class Oled;
+
+template<typename T>
+class ModelStorage;
 
 
 class AccountsMenu : public Menu
 {
 public:
-    AccountsMenu(Display &oled, UserInputs &userInputs, const Settings&);
+    AccountsMenu(Oled& oled, UserInputs& userInputs, const Settings&, ModelStorage<Account>&);
     ~AccountsMenu() = default;
 
     virtual void init(BlindCall switchMenuCb) override;
@@ -30,13 +32,14 @@ protected:
 
     void draw();
 
-    Display& oled_;
-    UserInputs &userInputs_;
+    Oled& oled_;
+    UserInputs& userInputs_;
 
     const Settings& settings_;
+    ModelStorage<Account>& modelStore_;
 
     Account acc_;
-    uint8_t acc_idx_{0};
+    uint16_t acc_idx_{0};
 };
 
 #endif // !__ACCOUNTS_MENU_HPP__

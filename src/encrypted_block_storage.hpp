@@ -1,8 +1,8 @@
 #ifndef __ENCRYPTED_BLOCK_STORAGE__
 #define __ENCRYPTED_BLOCK_STORAGE__
 
-#include <cstdint>
-#include <cstddef>
+#include <inttypes.h>
+#include <stdio.h>
 #include <AES.h>
 
 #include "block_storage.hpp"

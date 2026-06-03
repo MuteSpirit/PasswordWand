@@ -1,6 +1,6 @@
 #include "encrypted_block_storage.hpp"
 
-#include <cstring>
+#include <string.h>
 
 
 EncryptedBlockStorage::EncryptedBlockStorage(BlockStorage &bs)

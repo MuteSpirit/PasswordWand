@@ -61,6 +61,14 @@ class InMemoryPrint : public Oled {
         mIndex = 0;
     }
 
+    virtual void setup() override
+    {} 
+
+    virtual void setFont(const uint8_t* font) override
+    {
+        (void)font;
+    };
+
     void getLine(const uint8_t idx, char *buf, const uint8_t len) {
         if (idx > height - 1) {
             buf[0] = '\0';

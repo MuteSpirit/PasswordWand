@@ -7,24 +7,30 @@
 
 #include "block_storage.hpp"
 
+// TODO: make "EEPROM write protect pin manageble and optimize bulk write operations"
+// TODO: make [minAddr, maxAddr] diapasone configurable to store different model objects in different non-overlapped diapasones
+
 class EepromStorage : public BlockStorage
 {
 public:
+    EepromStorage(const uint8_t csPin, const uint8_t wpPin = 999, const uint16_t speed = F_CPU);
+    ~EepromStorage() = default;
+
     bool init(const enum eeprom_size_t fullSizeBytes, const enum EEPROM_WE_PAGE_SIZE pageSize);
 
 public:
-    virtual bool is_addr_ok(const uint32_t addr) const override;
+    virtual size_t minAddr() const override;
+    virtual size_t maxAddr() const override;
 
-    virtual uint8_t read(const uint32_t addr) override;
-    virtual void write(const uint32_t addr, const uint8_t b) override;
+    virtual bool isAddrOk(const size_t addr) const override;
 
-    virtual void read(const uint32_t addr, uint8_t *buf, const uint32_t size) override;
-    virtual void write(const uint32_t addr, const uint8_t *buf, const uint32_t size) override;
+    virtual uint8_t read(const size_t addr) override;
+    virtual void write(const size_t addr, const uint8_t b) override;
 
-    virtual void factory_reset() override;
+    virtual void read(const size_t addr, uint8_t *buf, const size_t size) override;
+    virtual void write(const size_t addr, const uint8_t *buf, const size_t size) override;
 
-    EepromStorage(const uint8_t csPin, const uint8_t wpPin = 999, const uint16_t speed = F_CPU);
-    ~EepromStorage() = default;
+    virtual void factoryReset() override;
 
 protected:
     uint8_t getResetFlag();

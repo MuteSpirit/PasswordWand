@@ -1,6 +1,6 @@
 #if defined(EPOXY_DUINO)
-#include <cstring>
-#include <cstdint>
+#include <inttypes.h>
+#include <string.h>
 #include <AUnitVerbose.h>
 
 #include "model.hpp"

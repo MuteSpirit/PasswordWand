@@ -3,14 +3,19 @@
 #include "blind_call.hpp"
 #include "board.hpp"
 #include "keyboard.hpp"
-#include "ext_storage.hpp"
-#include "model.hpp"
+#include "model_storage.hpp"
 #include "settings.hpp"
+#include "oled.hpp"
 
-AccountsMenu::AccountsMenu(Display& oled, UserInputs &userInputs, const Settings& settings)
+
+AccountsMenu::AccountsMenu(Oled& oled,
+                           UserInputs& userInputs,
+                           const Settings& settings,
+                           ModelStorage<Account>& modelStore)
     : oled_(oled)
     , userInputs_(userInputs)
     , settings_(settings)
+    , modelStore_(modelStore)
 {
     memset(&acc_, 0, sizeof(acc_));
 }
@@ -39,19 +44,12 @@ AccountsMenu::activate()
     acc_idx_ = 0;
     memset(&acc_, 0, sizeof(Account));
 
-    // DEBUG
-    strcpy(acc_.name, "acc1");
-    strcpy(acc_.username, "user1");
-    strcpy(acc_.password, "passwd1");
-
-    draw();
-
-    // if (ext_eeprom_get(acc_idx_, acc_) || 
-    //     ext_eeprom_get_next(acc_idx_, acc_, acc_idx_)) {
-    //     draw();
-    // } else {
-    //     oled_.println(F("No creds accounts"));
-    // }
+    if (modelStore_.get(acc_idx_, acc_) || 
+        modelStore_.getNext(acc_idx_, acc_, acc_idx_)) {
+        draw();
+    } else {
+        oled_.println(F("No creds accounts"));
+    }
 }
 
 void
@@ -96,29 +94,31 @@ AccountsMenu::navigateAccounts(int direction)
         return;
     }
 
-    uint8_t idx = acc_idx_;
+    ModelStorage<Account>::ObjIndex idx = acc_idx_;
 
     do {
         if (direction > 0) {
-            if (ext_eeprom_get_next(acc_idx_, acc_, idx)) {
+            if (modelStore_.getNext(acc_idx_, acc_, idx)) {
                 break;
             }
-            if (ext_eeprom_get(0, acc_)) {
+            if (modelStore_.get(0, acc_)) {
                 idx = 0;
                 break;
             }
-            if (ext_eeprom_get_next(0, acc_, idx)) {
+            if (modelStore_.getNext(0, acc_, idx)) {
                 break;
             }
         } else {
-            if (ext_eeprom_get_prev(acc_idx_, acc_, idx)) {
+            if (modelStore_.getPrev(acc_idx_, acc_, idx)) {
                 break;
             }
-            if (ext_eeprom_get(CREDS_ACCOMIDATED, acc_)) {
-                idx = CREDS_ACCOMIDATED;
+            auto maxIdx = modelStore_.maxIdx();
+
+            if (modelStore_.get(maxIdx, acc_)) {
+                idx = maxIdx;
                 break;
             }
-            if (ext_eeprom_get_prev(CREDS_ACCOMIDATED, acc_, idx)) {
+            if (modelStore_.getPrev(maxIdx, acc_, idx)) {
                 break;
             }
         }

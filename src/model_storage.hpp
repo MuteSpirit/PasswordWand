@@ -1,8 +1,8 @@
 #ifndef __OBJ_MODEL_STORAGE__
 #define __OBJ_MODEL_STORAGE__
 
-#include <cstddef>
-#include <cstdint>
+#include <inttypes.h>
+#include <stdio.h>
 
 // TODO: use size_t instead of uint32_t as address type
 
@@ -21,13 +21,16 @@ public:
 
     bool isExist(const char* key);
 
-    ObjIndex count();
+    ObjIndex count() const;
+    ObjIndex maxIdx() const;
 
     bool get(const ObjIndex idx, Object &t);
     bool getNext(const ObjIndex from, Object &t, ObjIndex &idx);
     bool getPrev(const ObjIndex from, Object &t, ObjIndex &idx);
     bool add(const Object &t);
     bool del(const char* key);
+
+    void factoryReset();
 
 protected:
     /// @brief Store not only original model object but also special flag.
@@ -49,8 +52,8 @@ protected:
     };
 
 protected:
-    bool isOkIdx(const ObjIndex idx);
-    bool isFreeAccount(const ObjIndex idx);
+    bool isOkIdx(const ObjIndex idx) const;
+    bool isFreeAccount(const ObjIndex idx) const;
     bool getFreeObjectIndex(ObjIndex &idx);
     size_t idx2addr(const ObjIndex idx) const;
     size_t getKeyAddr(const ObjIndex idx);

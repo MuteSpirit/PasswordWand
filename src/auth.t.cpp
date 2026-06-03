@@ -1,3 +1,5 @@
+#if defined(EPOXY_DUINO)
+
 #include "auth.cpp"
 #include "AUnitVerbose.h"
 #include "SHA256.h"
@@ -52,3 +54,5 @@ testF(AuthenticatorTester, auth_fail_with_wrong_password)
     wandAuth.init("WithSalt", strlen("WithSalt"), hash, PasswordWandAuth::hashSize);
     assertFalse(wandAuth.auth("WrongPassword", strlen("WrongPassword")));
 };
+
+#endif // EPOXY_DUINO

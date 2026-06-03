@@ -2,8 +2,9 @@
 #ifndef __MODEL_HPP__
 #define __MODEL_HPP__
 
-#include <cstddef>
-#include <cstdint>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stddef.h>
 
 // TODO: use enum ?
 #define ACCOUNT_NAME_SIZE 32

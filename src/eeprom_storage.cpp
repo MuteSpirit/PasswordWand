@@ -20,8 +20,7 @@ EepromStorage::init(const enum eeprom_size_t fullSizeBytes, const enum EEPROM_WE
     fullSizeBytes_ = (uint32_t)fullSizeBytes;
 
     if (RESET_FLAG != getResetFlag()) {
-        factory_reset();
-        setResetFlag();
+        factoryReset();
     }
 }
 
@@ -36,45 +35,57 @@ EepromStorage::setResetFlag()
 {
     eep_.write(fullSizeBytes_ - 1, RESET_FLAG);
 }
+size_t
+EepromStorage::minAddr() const
+{
+    return 0;
+}
+
+size_t
+EepromStorage::maxAddr() const
+{
+    return fullSizeBytes_ - 1 /* init flag size */;
+}
 
 bool
-EepromStorage::is_addr_ok(const uint32_t addr) const
+EepromStorage::isAddrOk(const size_t addr) const
 {
-    return addr < fullSizeBytes_ - 1 /* init flag size */;
+    return minAddr() <= addr && addr < maxAddr();
 }
 
 uint8_t
-EepromStorage::read(const uint32_t addr)
+EepromStorage::read(const size_t addr)
 {
     return eep_.read(addr);
 }
 
 void
-EepromStorage::write(const uint32_t addr, const uint8_t b)
+EepromStorage::write(const size_t addr, const uint8_t b)
 {
-    if (is_addr_ok(addr)) {
+    if (isAddrOk(addr)) {
         eep_.write(addr, b);
     }
 }
 
 void
-EepromStorage::read(const uint32_t addr, uint8_t *buf, const uint32_t size)
+EepromStorage::read(const size_t addr, uint8_t *buf, const size_t size)
 {
-    for (uint8_t i = 0; i < size && is_addr_ok(addr + i); ++i) {
+    for (uint8_t i = 0; i < size && isAddrOk(addr + i); ++i) {
         buf[i] = eep_.read(addr + i);
     }
 }
 
 void
-EepromStorage::write(const uint32_t addr, const uint8_t *buf, const uint32_t size)
+EepromStorage::write(const size_t addr, const uint8_t *buf, const size_t size)
 {
-    for (uint8_t i = 0; is_addr_ok(addr + i); ++i) {
+    for (uint8_t i = 0; isAddrOk(addr + i); ++i) {
         eep_.write(addr + i, buf[i]);
     }
 }
 
 void
-EepromStorage::factory_reset()
+EepromStorage::factoryReset()
 {
     eep_.eraseCompleteEEPROM();
+    setResetFlag();
 }

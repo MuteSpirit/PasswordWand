@@ -1,12 +1,21 @@
+#include "SSD1306Ascii.h" // OLED fonts
+
+#include "src/auth.hpp"
 #include "src/cli.hpp"
 #include "src/model.hpp"
+#include "src/model_storage.hpp"
+#include "src/ssd1306_oled.hpp"
 #include "src/version.hpp"
 #include "src/display_ui.hpp"
-#include "src/ext_storage.hpp"
 #include "src/board.hpp"
 #include "src/accounts_menu.hpp"
 #include "src/settings_menu.hpp"
 #include "src/settings.hpp"
+#include "src/auth_form.hpp"
+#include "src/ssd1306_oled.hpp"
+#include "src/model_storage.hpp"
+#include "src/eeprom_storage.hpp"
+#include "src/encrypted_block_storage.hpp"
 
 // Baud rate for serial port
 #define SERIAL_BAUD_RATE 38400
@@ -16,13 +25,24 @@
 Settings settings;
 
 // Use OLED_NO_BUFFER to keep RAM for another code
-Display oled;
+SSD1306oled oled;
 
 DeviceUserInputs userInputs;
-AccountsMenu accMenu(oled, userInputs, settings);
+
+PasswordWandAuth authenticator;
+
+EepromStorage eepromStore(EXT_EEPROM_CS_PIN);
+EncryptedBlockStorage ebs(eepromStore);
+// TODO: move to callback
+// assertTrue(ebs.init(encStoreKey, encStoreKeyLen));
+
+ModelStorage<Account> modelStore(ebs);
+
+AuthForm authForm(oled, userInputs, authenticator);
+AccountsMenu accMenu(oled, userInputs, settings, modelStore);
 SettingsMenu settingsMenu(oled, userInputs, settings);
 
-DisplayUI ui(oled, userInputs, accMenu, settingsMenu);
+DisplayUI ui(oled, userInputs, authForm, accMenu, settingsMenu);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void
@@ -30,12 +50,13 @@ setup()
 {
   pinMode(4, INPUT_PULLUP); // DEBUG
 
+  // TODO: check return value
+  eepromStore.init(EEPROM_KBITS_256, EEPROM_PAGE_SIZE_64);
 
   userInputs.setup();
 
-  oled.begin(&Adafruit128x32, OLED_I2C_ADDR);
+  oled.setup();
   oled.setFont(System5x7);                                                // perfect, slightly smaller than Arial14
-  // oled.init(OLED_SDA_PIN, OLED_SCK_PIN);
 
   oled.clear();
 
@@ -47,9 +68,6 @@ setup()
   delay(SHOW_SPLASHSCREEN);
 
   print_welcome(Serial);
-
-  // TODO: restore when possible
-  // ext_storage_setup(oled);
 
   ui.ui_setup();
 

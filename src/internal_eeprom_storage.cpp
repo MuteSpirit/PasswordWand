@@ -20,8 +20,7 @@ InternalEepromStorage::init()
     fullSizeBytes_ = EEPROM.length();
 
     if (RESET_FLAG != getResetFlag()) {
-        factory_reset();
-        setResetFlag();
+        factoryReset();
     }
 }
 
@@ -37,47 +36,60 @@ InternalEepromStorage::setResetFlag()
     EEPROM.write(RESET_FLAG_ADDR, RESET_FLAG);
 }
 
-bool
-InternalEepromStorage::is_addr_ok(const uint32_t addr) const
+size_t
+InternalEepromStorage::minAddr() const
 {
-    return addr >= RESET_FLAG_ADDR;
+    return 0;
+}
+
+size_t
+InternalEepromStorage::maxAddr() const
+{
+    return RESET_FLAG_ADDR - 1 /* reset flag size */;
+}
+
+bool
+InternalEepromStorage::isAddrOk(const size_t addr) const
+{
+    return minAddr() <= addr && addr < maxAddr();
 }
 
 uint8_t
-InternalEepromStorage::read(const uint32_t addr)
+InternalEepromStorage::read(const size_t addr)
 {
     return EEPROM.read(addr);
 }
 
 void
-InternalEepromStorage::write(const uint32_t addr, const uint8_t b)
+InternalEepromStorage::write(const size_t addr, const uint8_t b)
 {
-    if (is_addr_ok(addr)) {
+    if (isAddrOk(addr)) {
         EEPROM.update(addr, b);
     }
 }
 
 void
-InternalEepromStorage::read(const uint32_t addr, uint8_t *buf, const uint32_t size)
+InternalEepromStorage::read(const size_t addr, uint8_t *buf, const size_t size)
 {
-    for (uint8_t i = 0; i < size && is_addr_ok(addr + i); ++i) {
+    for (uint8_t i = 0; i < size && isAddrOk(addr + i); ++i) {
         buf[i] = EEPROM.read(addr + i);
     }
 }
 
 void
-InternalEepromStorage::write(const uint32_t addr, const uint8_t *buf, const uint32_t size)
+InternalEepromStorage::write(const size_t addr, const uint8_t *buf, const size_t size)
 {
-    for (uint8_t i = 0; is_addr_ok(addr + i); ++i) {
+    for (uint8_t i = 0; i < size && isAddrOk(addr + i); ++i) {
         EEPROM.update(addr + i, buf[i]);
     }
 }
 
 void
-InternalEepromStorage::factory_reset()
+InternalEepromStorage::factoryReset()
 {
     for (unsigned int i = 0; i < fullSizeBytes_; ++i) {
         EEPROM.write(i, EMPTY_BYTE_VALUE);
     }
+    setResetFlag();
 }
 

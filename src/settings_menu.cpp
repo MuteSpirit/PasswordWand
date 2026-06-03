@@ -5,12 +5,15 @@
 // #define MENU_ITEM_PADDING_TOP 10
 // #include "GyverOLEDMenu.h"
 
+#include "SSD1306Ascii.h" // OLED fonts
+
 #include "user_inputs.hpp"
 #include "settings.hpp"
 #include "cli.hpp"
+#include "oled.hpp"
 
 
-SettingsMenu::SettingsMenu(Display &oled, UserInputs& userInputs, Settings& settings)
+SettingsMenu::SettingsMenu(Oled &oled, UserInputs& userInputs, Settings& settings)
     : oled_(oled)
     , userInputs_(userInputs)
     , settings_(settings)
@@ -96,7 +99,7 @@ SettingsMenu::enterEditMode()
 {
     editMode_ = true;
 
-    oled.setFont(cp437font8x8);
+    oled_.setFont(cp437font8x8);
 
     userInputs_.set(UserInputs::Button::square, BlindCall::make(this, &SettingsMenu::selectPrevValue));
     userInputs_.set(UserInputs::Button::cross, BlindCall::make(this, &SettingsMenu::selectNextValue));
@@ -114,7 +117,7 @@ SettingsMenu::leaveEditMode()
 {
     editMode_ = false;
 
-    oled.setFont(System5x7);
+    oled_.setFont(System5x7);
 
     userInputs_.set(UserInputs::Button::square, BlindCall::make(this, &SettingsMenu::selectPrevItem));
     userInputs_.set(UserInputs::Button::cross, BlindCall::make(this, &SettingsMenu::selectNextItem));
@@ -199,5 +202,5 @@ SettingsMenu::deactivate()
     oled_.clear();
 
     editMode_ = false;
-    oled.setFont(System5x7);
+    oled_.setFont(System5x7);
 }

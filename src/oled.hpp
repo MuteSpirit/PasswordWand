@@ -6,13 +6,17 @@
 class Oled : public Print
 {
 public:
-   virtual void clear() = 0; 
-   virtual void home() = 0; 
+    virtual void setup() = 0; 
 
-   virtual ~Oled() {};
+    virtual void clear() = 0; 
+    virtual void home() = 0; 
+
+    virtual void setFont(const uint8_t* font) = 0;
+
+    virtual ~Oled() {};
 
 protected:
-   Oled() = default;
+    Oled() = default;
 };
 
 #endif // !__OLED_HPP__

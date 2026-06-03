@@ -4,9 +4,9 @@
 
 #include "cli.hpp"
 #include "model.hpp"
-#include "ext_storage.hpp"
 #include "layout.hpp"
 #include "version.hpp"
+#include "model_storage.hpp"
 
 /******************************************************************************/
 // from SimpleCLI/c/arg.c
@@ -39,6 +39,7 @@ const char * const usage[] = {
 
 // TODO: SimpleCLI(int commandQueueSize = 10, int errorQueueSize = 10); 
 SimpleCLI cli;
+extern ModelStorage<Account> modelStore;
 
 void print_usage(cmd *pcmd);
 void add_account(cmd *pcmd);
@@ -149,7 +150,7 @@ add_account(cmd *pcmd)
     Argument password_arg = add_cmd.getArgument(2);
     // // TODO: generate password if user did not pass it
     //
-    if (ext_eeprom_is_exist(arg_get_value(name_arg.getPtr()))) {
+    if (modelStore.isExist(arg_get_value(name_arg.getPtr()))) {
         Serial.println(F("FAIL: Account with such name is already exist"));
         return;
     }
@@ -159,7 +160,7 @@ add_account(cmd *pcmd)
     strncpy(acc.username, arg_get_value(username_arg.getPtr()), sizeof(acc.username));
     strncpy(acc.password, arg_get_value(password_arg.getPtr()), sizeof(acc.password));
 
-    if (!ext_eeprom_add(acc)) {
+    if (!modelStore.add(acc)) {
         Serial.println(F("FAIL: No space"));
     } else {
         Serial.println(F("Done"));
@@ -175,7 +176,7 @@ del_account(cmd *pcmd)
         Serial.println(F("FAIL: argument <name> is absent"));
     }
 
-    if (!ext_eeprom_del(arg_get_value(name_arg.getPtr()))) {
+    if (!modelStore.del(arg_get_value(name_arg.getPtr()))) {
         Serial.println(F("FAIL"));
     } else {
         Serial.println(F("Done"));
@@ -184,18 +185,20 @@ del_account(cmd *pcmd)
 
 void
 ls_accounts(__attribute__((unused)) cmd *pcmd) {
-    uint8_t founded = 0;
     Account acc;
-    const uint8_t acc_size = ext_eeprom_get_num_of_accounts();
-    for (unsigned int i = 0; founded < acc_size && i < CREDS_ACCOMIDATED; ++i) {
-        if (!ext_eeprom_get(i, acc)) {
-            continue;
-        }
-        ++founded;
+    typename ModelStorage<Account>::ObjIndex idx = 0;
+    if (!modelStore.get(idx, acc)) {
+        Serial.println(F("Done"));
+        return;
+    }
+
+    do
+    {
         Serial.println(acc.name); 
         Serial.println(acc.username); 
         Serial.println(acc.password); 
-    }
+    } while (modelStore.getNext(idx, acc, idx));
+
     Serial.println(F("Done"));
 }
 
@@ -203,11 +206,8 @@ void
 factory_reset(cmd *pcmd) {
     Command reset_cmd(pcmd);
 
-    if (!storage_factory_reset(Serial)) {
-        Serial.println(F("FAIL"));
-    } else {
-        Serial.println(F("OK"));
-    }
+    modelStore.factoryReset(); // TODO: how show progress?
+    Serial.println(F("Done"));
 }
 
 void

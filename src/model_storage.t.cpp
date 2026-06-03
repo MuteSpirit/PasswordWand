@@ -3,7 +3,7 @@
 #include "model_storage.cpp"
 #include "memory_block_storage.cpp"
 #include <AUnitVerbose.h>
-#include <cstring>
+#include <string.h>
 
 test(model_storage_ctor)
 {

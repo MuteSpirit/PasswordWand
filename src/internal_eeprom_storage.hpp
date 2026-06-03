@@ -8,20 +8,22 @@
 class InternalEepromStorage : public BlockStorage
 {
 public:
-    bool init();
-
-    virtual bool is_addr_ok(const uint32_t addr) const override;
-
-    virtual uint8_t read(const uint32_t addr) override;
-    virtual void write(const uint32_t addr, const uint8_t b) override;
-
-    virtual void read(const uint32_t addr, uint8_t *buf, const uint32_t size) override;
-    virtual void write(const uint32_t addr, const uint8_t *buf, const uint32_t size) override;
-
-    virtual void factory_reset() override;
-
     InternalEepromStorage();
     ~InternalEepromStorage() = default;
+    bool init();
+
+    virtual size_t minAddr() const override;
+    virtual size_t maxAddr() const override;
+
+    virtual bool isAddrOk(const size_t addr) const override;
+
+    virtual uint8_t read(const size_t addr) override;
+    virtual void write(const size_t addr, const uint8_t b) override;
+
+    virtual void read(const size_t addr, uint8_t *buf, const size_t size) override;
+    virtual void write(const size_t addr, const uint8_t *buf, const size_t size) override;
+
+    virtual void factoryReset() override;
 
 protected:
     uint8_t getResetFlag();

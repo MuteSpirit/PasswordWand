@@ -1,8 +1,8 @@
 #ifndef __BLOCK_STORAGE__
 #define __BLOCK_STORAGE__
 
-#include <cstdint>
-#include <cstddef>
+#include <inttypes.h>
+#include <stdio.h>
 
 
 class BlockStorage

@@ -1,6 +1,6 @@
-#include <cstddef>
 #if defined(EPOXY_DUINO)
 #include "memory_block_storage.cpp"
+#include <stdio.h>
 #include <AUnit.h>
 
 class MemoryBlockStorageTestHelper

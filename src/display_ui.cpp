@@ -2,14 +2,18 @@
 #include "user_inputs.hpp"
 #include "accounts_menu.hpp"
 #include "settings_menu.hpp"
+#include "oled.hpp"
+#include "auth_form.hpp"
 
 
-DisplayUI::DisplayUI(Display &oled,
+DisplayUI::DisplayUI(Oled &oled,
                      UserInputs &userInputs,
+                     AuthForm &authForm,
                      AccountsMenu &accMenu,
                      SettingsMenu &settingsMenu)
     : oled_(oled)
     , userInputs_(userInputs)
+    , authForm_(authForm)
     , accMenu_(accMenu)
     , settingsMenu_(settingsMenu)
 {}
@@ -20,6 +24,7 @@ DisplayUI::ui_setup(void)
     oled_.clear();
     oled_.home();
 
+    authForm_.init(BlindCall::make(this, &DisplayUI::switch2accountsMenu), BlindCall::stub());
     accMenu_.init(BlindCall::make(this, &DisplayUI::switch2settingsMenu));
     settingsMenu_.init(BlindCall::make(this, &DisplayUI::switch2accountsMenu));
 

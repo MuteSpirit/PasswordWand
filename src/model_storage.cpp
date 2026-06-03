@@ -1,9 +1,9 @@
 #include "model_storage.hpp"
 #include "model.hpp"
 #include "block_storage.hpp"
-#include <cstdint>
-#include <cstddef>
-#include <cstring>
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 
 
@@ -32,7 +32,7 @@ ModelStorage<Object>::isExist(const char* key)
 
 template<typename Object>
 bool
-ModelStorage<Object>::isOkIdx(const ObjIndex idx)
+ModelStorage<Object>::isOkIdx(const ObjIndex idx) const
 {
     size_t startAddr = idx2addr(idx);
     return bs_.isAddrOk(startAddr) && (bs_.isAddrOk(startAddr + sizeof(Object) - sizeof(ObjInStorage::commitFlag_)));
@@ -47,7 +47,7 @@ ModelStorage<Object>::getKeyAddr(const ObjIndex idx)
 
 template<typename Object>
 typename ModelStorage<Object>::ObjIndex
-ModelStorage<Object>::count()
+ModelStorage<Object>::count() const
 {
     ObjIndex c = 0;
     for (ObjIndex idx = 0; isOkIdx(idx); ++idx) {
@@ -59,8 +59,16 @@ ModelStorage<Object>::count()
 }
 
 template<typename Object>
+typename ModelStorage<Object>::ObjIndex
+ModelStorage<Object>::maxIdx() const
+{
+    size_t maxAvailableSlots = (bs_.maxAddr() - bs_.minAddr()) / sizeof(ObjInStorage);
+    return maxAvailableSlots > 0 ? maxAvailableSlots - 1 : 0;
+}
+
+template<typename Object>
 bool
-ModelStorage<Object>::isFreeAccount(const ObjIndex idx)
+ModelStorage<Object>::isFreeAccount(const ObjIndex idx) const
 {
     return static_cast<uint8_t>(ObjInStorage::Committment::free) == bs_.read(idx2addr(idx) + offsetof(ObjInStorage, commitFlag_));
 }
@@ -161,4 +169,11 @@ size_t
 ModelStorage<Object>::idx2addr(const ObjIndex idx) const
 {
     return bs_.minAddr() + idx * sizeof(ObjInStorage);
+}
+
+template<typename Object>
+void
+ModelStorage<Object>::factoryReset()
+{
+    bs_.factoryReset();
 }

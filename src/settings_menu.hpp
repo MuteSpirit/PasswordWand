@@ -3,16 +3,16 @@
 #define __SETTINGS_MENU_HPP__
 
 #include "menu.hpp"
-#include "board.hpp"
 
 class Settings;
 class UserInputs;
+class Oled;
 
 
 class SettingsMenu : public Menu
 {
 public:
-    SettingsMenu(Display &oled, UserInputs& userInputs, Settings& settings);
+    SettingsMenu(Oled &oled, UserInputs& userInputs, Settings& settings);
     ~SettingsMenu() = default;
 
     virtual void init(BlindCall switchMenuCb) override;
@@ -66,7 +66,7 @@ protected:
     void cancelChange();
 
 protected:
-    Display &oled_;
+    Oled &oled_;
     UserInputs& userInputs_;
     Settings &settings_;
 
