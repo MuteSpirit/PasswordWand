@@ -29,10 +29,25 @@ Author: Dan Murphy aka <seawarrior181>
 An ATMega32u4 USB based credentials manager. 
 See www.5volts.org for more information.
 
-## !!! Warning !!!
+## **!!! Warning !!!**
 
 Project is under active development.
 Please don't use it until first stable release.
+
+# News
+
+* All original code of PasswordPump has been removed from the project. Code base has been developed from scratch.
+* AES128 has been replaced with AES256.
+* Code related to authentication and encrypted storage has been covered by unit tests (AUnit has been used).
+* Unfortunatelly **sketch is too big for Arduino Pro Micro**
+
+# Roadmap
+
+* Try to use NFR52840 Pro Micro instead of Arduino. We'll have 1MB flash instead of 32KB (where 4KB is reserved for bootloader) and 256KB RAM instead of 2.5KB
+* Try to replace AES256 with AES128Tiny
+* Make test device
+* Finish MVP
+* Make presentation materials
 
 # PasswordWand Design
 

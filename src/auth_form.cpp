@@ -1,5 +1,4 @@
 #include "auth_form.hpp"
-#include "layout.hpp"
 #include "user_inputs.hpp"
 #include "oled.hpp"
 #include "auth.hpp"
@@ -136,7 +135,7 @@ AuthForm::typingGroupLen() const
 void
 AuthForm::eraseLastSymbol()
 {
-    const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
+    const size_t len = strnlen(password_, passwordSize - 1);
     password_[len - 1] = '\0';
 
     if (0 == len) {
@@ -147,7 +146,7 @@ AuthForm::eraseLastSymbol()
 void
 AuthForm::commitSymbol()
 {
-    const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
+    const size_t len = strnlen(password_, passwordSize - 1);
     password_[len] = typingSymbol();
     password_[len + 1] = '\0';
     allowTryAuth_ = true;
@@ -160,7 +159,7 @@ AuthForm::commitPassword()
         return;
     }
 
-    if (auth_.auth(password_, strnlen(password_, MASTER_PASSWORD_SIZE - 1))) {
+    if (auth_.auth(password_, strnlen(password_, passwordSize - 1))) {
         successAuthCb_();
     } else {
         failAuthCb_();

@@ -1,10 +1,8 @@
 #pragma once
-#include "auth.hpp"
 #ifndef __AUTH_FORM__
 #define __AUTH_FORM__
 
 #include "menu.hpp"
-#include "layout.hpp"
 
 
 class AuthFormTestHelper;
@@ -28,6 +26,8 @@ class Authenticator;
 class AuthForm : public Menu
 {
 public:
+    static constexpr uint8_t passwordSize = 32; // required aes256 key size
+
     enum class SymbolGroup : uint8_t
     {
         alphaLowerCase,
@@ -74,7 +74,7 @@ protected:
     const char *typingChars_ {nullptr};
     SymbolGroup typingSymbolGroup_ {AuthForm::SymbolGroup::alphaLowerCase};
 
-    char password_[MASTER_PASSWORD_SIZE];
+    char password_[passwordSize];
     bool allowTryAuth_ {false}; /// auth try will happen only if password is not empty and if was not recognized as wrong
 };
 

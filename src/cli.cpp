@@ -1,10 +1,8 @@
-#include <avr/pgmspace.h>
 #include <SimpleCLI.h>
 #include <c/arg.h>
 
 #include "cli.hpp"
 #include "model.hpp"
-#include "layout.hpp"
 #include "version.hpp"
 #include "model_storage.hpp"
 

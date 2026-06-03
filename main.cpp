@@ -38,6 +38,7 @@ EncryptedBlockStorage ebs(eepromStore);
 
 ModelStorage<Account> modelStore(ebs);
 
+// Create on demand ???
 AuthForm authForm(oled, userInputs, authenticator);
 AccountsMenu accMenu(oled, userInputs, settings, modelStore);
 SettingsMenu settingsMenu(oled, userInputs, settings);
