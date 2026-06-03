@@ -1,5 +1,8 @@
 #include "encrypted_block_storage.hpp"
 
+#include <cstring>
+
+
 EncryptedBlockStorage::EncryptedBlockStorage(BlockStorage &bs)
     : bs_(bs)
     , blockStartAddr_(bs_.minAddr())
@@ -55,10 +58,11 @@ EncryptedBlockStorage::read(const size_t addr)
             uint8_t block[AES_BLOCK_SIZE] = {0};
             aes_.encryptBlock(block, decryptedBlock_);
             bs_.write(blockStartAddr_, block, AES_BLOCK_SIZE);
+
+            cachedBlockIsDirty_ = false;
         }
 
         decryptIdx_ = -1;
-        cachedBlockIsDirty_ = false;
     }
 
     if (decryptIdx_ < 0) { // no decryption before
@@ -80,6 +84,8 @@ EncryptedBlockStorage::read(const size_t addr)
         }
         if (!wiped) {
             aes_.decryptBlock(decryptedBlock_, block);
+        } else {
+            memcpy(decryptedBlock_, block, AES_BLOCK_SIZE);
         }
     }
 
@@ -129,6 +135,8 @@ EncryptedBlockStorage::write(const size_t addr, const uint8_t b)
         }
         if (!wiped) {
             aes_.decryptBlock(decryptedBlock_, block);
+        } else {
+            memcpy(decryptedBlock_, block, AES_BLOCK_SIZE);
         }
     }
 
