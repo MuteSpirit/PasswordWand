@@ -13,12 +13,18 @@ class Oled;
 class Authenticator;
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @details
+/// Password typing use case
 /// * Rotate encoder will scroll current symbol from available symbolic group
 /// * Button "square" will change current group of symbols - alpha lowercase, alpha uppercase, digits, specials
 /// * Button "cross" will commit current symbol
 /// * Button "triangle" will erase last symbol (=== Backspace) to decrease amount of login failures due to one mistake in the middle of long password
 /// * Button "circle" will commit password and trigger authentication procedure
 /// * Master password will be visible during typing
+///
+/// Another feature:
+/// * Not try auth with the same wrong password as previously to not increase "Fail Login" counter
+///   * Reason: it looks like human mistake or stuck button. Lost all passwords due to such accident will be painful
 class AuthForm : public Menu
 {
 public:
@@ -33,10 +39,13 @@ public:
 
     AuthForm(Oled &oled, UserInputs &inputs, Authenticator& auth);
 
-    virtual void init(BlindCall switchMenuCb) override;
+    void init(BlindCall successAuthCb, BlindCall failAuthCb);
 
     virtual void activate() override;
     virtual void deactivate() override;
+
+protected:
+    virtual void init(BlindCall successAuthCb) override;
 
 protected:
     friend AuthFormTestHelper;
@@ -58,13 +67,15 @@ protected:
     UserInputs &userInputs_;
     Authenticator& auth_;
 
-    BlindCall switchMenuCb_ {BlindCall::stub()};
+    BlindCall successAuthCb_ {BlindCall::stub()};
+    BlindCall failAuthCb_ {BlindCall::stub()};
 
     uint8_t typingSymbolIdx_ {0};
     const char *typingChars_ {nullptr};
     SymbolGroup typingSymbolGroup_ {AuthForm::SymbolGroup::alphaLowerCase};
 
     char password_[MASTER_PASSWORD_SIZE];
+    bool allowTryAuth_ {false}; /// auth try will happen only if password is not empty and if was not recognized as wrong
 };
 
 #endif // !__AUTH_FORM__

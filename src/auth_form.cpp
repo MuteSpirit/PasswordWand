@@ -20,15 +20,24 @@ AuthForm::AuthForm(Oled &oled, UserInputs &userInputs, Authenticator& auth)
 }
 
 void
-AuthForm::init(BlindCall switchMenuCb)
+AuthForm::init(BlindCall successAuthCb, BlindCall failAuthCb)
 {
-    switchMenuCb_ = switchMenuCb;
+    init(successAuthCb);
+    successAuthCb_ = successAuthCb;
+    failAuthCb_ = failAuthCb;
+}
+
+void
+AuthForm::init(BlindCall successAuthCb)
+{
+    successAuthCb_ = successAuthCb;
 }
 
 void
 AuthForm::activate()
 {
     memset(password_, 0, sizeof(password_));
+    allowTryAuth_ = false;
 
     oled_.home();
 
@@ -42,12 +51,13 @@ void
 AuthForm::deactivate()
 {
     memset(password_, 0, sizeof(password_));
+    allowTryAuth_ = false;
 
     userInputs_.unset(UserInputs::Button::circle);
     userInputs_.unset(UserInputs::Button::cross);
     userInputs_.unset(UserInputs::Button::square);
 
-    userInputs_.set(UserInputs::Button::triangle, switchMenuCb_);
+    userInputs_.set(UserInputs::Button::triangle, successAuthCb_);
 
     userInputs_.unset(UserInputs::Encoder::rotary);
 
@@ -128,6 +138,10 @@ AuthForm::eraseLastSymbol()
 {
     const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
     password_[len - 1] = '\0';
+
+    if (0 == len) {
+        allowTryAuth_ = false;
+    }
 }
 
 void
@@ -136,14 +150,23 @@ AuthForm::commitSymbol()
     const size_t len = strnlen(password_, MASTER_PASSWORD_SIZE - 1);
     password_[len] = typingSymbol();
     password_[len + 1] = '\0';
+    allowTryAuth_ = true;
 }
 
 void
 AuthForm::commitPassword()
 {
-    if (auth_.auth(password_, strnlen(password_, MASTER_PASSWORD_SIZE - 1))) {
-        switchMenuCb_();
+    if (!allowTryAuth_) {
+        return;
     }
+
+    if (auth_.auth(password_, strnlen(password_, MASTER_PASSWORD_SIZE - 1))) {
+        successAuthCb_();
+    } else {
+        failAuthCb_();
+    }
+    // repeating even success authentication looks wrong
+    allowTryAuth_ = false;
 }
 
 char

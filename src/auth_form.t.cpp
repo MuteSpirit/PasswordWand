@@ -22,6 +22,7 @@ public:
 
     void setPassword(const char* pswd) {
         strcpy(form_.password_, pswd);
+        form_.allowTryAuth_ = true;
     }
     void commitPassword()        {form_.commitPassword();}
 
@@ -46,6 +47,7 @@ protected:
         strcpy(salt, "WithSalt");
         strcpy(saltedPassword, "PasswordWithSalt");
         strcpy(password, "Password");
+        strcpy(wrongPassword, "WrongPassword");
 
         memset(hash, 0, PasswordWandAuth::hashSize);
 
@@ -64,6 +66,7 @@ protected:
 
     char salt[PasswordWandAuth::hashSize];
     char password[PasswordWandAuth::hashSize];
+    char wrongPassword[PasswordWandAuth::hashSize];
     char saltedPassword[PasswordWandAuth::hashSize];
     uint8_t hash[PasswordWandAuth::hashSize];
 
@@ -75,9 +78,9 @@ testF(AuthFormTester, auth_form_ctor)
 {
 };
 
-testF(AuthFormTester, auth_form_init)
+testF(AuthFormTester, auth_form_stub_init)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 };
 
 testF(AuthFormTester, auth_form_deactivate)
@@ -88,7 +91,7 @@ testF(AuthFormTester, auth_form_deactivate)
         void call() { ++c; }
     } cb;
 
-    authForm.init(BlindCall::make(&cb, &FakeSwitchFormCb::call));
+    authForm.init(BlindCall::make(&cb, &FakeSwitchFormCb::call), BlindCall::stub());
 
     assertEqual(0, cb.c);
 
@@ -101,7 +104,7 @@ testF(AuthFormTester, auth_form_deactivate)
 
 testF(AuthFormTester, auth_form_switch_typing_group)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
     //
     // Check initial defaults
     assertTrue(AuthForm::SymbolGroup::alphaLowerCase == h.typingSymbolGroup());
@@ -132,7 +135,7 @@ testF(AuthFormTester, auth_form_switch_typing_group)
 
 testF(AuthFormTester, auth_form_commit_and_erase_symbol)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     assertEqual('a', h.typingSymbol());
     assertEqual((char)0, h.password()[0]);
@@ -162,7 +165,7 @@ testF(AuthFormTester, auth_form_commit_and_erase_symbol)
 
 testF(AuthFormTester, auth_form_change_typing_symbol_forward_and_back_one_round)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     assertEqual('a', h.typingSymbol());
 
@@ -175,7 +178,7 @@ testF(AuthFormTester, auth_form_change_typing_symbol_forward_and_back_one_round)
 
 testF(AuthFormTester, auth_form_not_only_a_typing_symbol_become_upper_on_switch_group)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     assertTrue(AuthForm::SymbolGroup::alphaLowerCase == h.typingSymbolGroup());
     assertEqual('a', h.typingSymbol());
@@ -190,7 +193,7 @@ testF(AuthFormTester, auth_form_not_only_a_typing_symbol_become_upper_on_switch_
 
 testF(AuthFormTester, auth_form_change_typing_symbol_forward_and_back_on_different_groups)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     h.chooseNextSymbolGroup();
 
@@ -229,7 +232,7 @@ testF(AuthFormTester, auth_form_change_typing_symbol_forward_and_back_on_differe
 
 testF(AuthFormTester, auth_form_typing_group_len)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     h.chooseNextSymbolGroup();
     h.chooseNextSymbolGroup();
@@ -239,7 +242,7 @@ testF(AuthFormTester, auth_form_typing_group_len)
 
 testF(AuthFormTester, auth_form_choose_next_symbol_is_cyclic_in_forward_order)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     h.chooseNextSymbolGroup();
     h.chooseNextSymbolGroup();
@@ -257,7 +260,7 @@ testF(AuthFormTester, auth_form_choose_next_symbol_is_cyclic_in_forward_order)
 
 testF(AuthFormTester, auth_form_choose_next_symbol_is_cyclic_in_reverse_order)
 {
-    authForm.init(BlindCall::stub());
+    authForm.init(BlindCall::stub(), BlindCall::stub());
 
     assertEqual('a', h.typingSymbol());
 
@@ -274,18 +277,76 @@ testF(AuthFormTester, auth_form_choose_next_symbol_is_cyclic_in_reverse_order)
     assertEqual('9', h.typingSymbol());
 };
 
-testF(AuthFormTester, auth_form_authenticate)
+testF(AuthFormTester, auth_form_success_auth)
 {
-    struct SwitchMenuCbAcceptor
+    struct MenuCbAcceptor
     {
         bool accepted_ {false};
         void accept() { accepted_ = true; }
     } cb;
-    authForm.init(BlindCall::make(&cb, &SwitchMenuCbAcceptor::accept));
+    authForm.init(BlindCall::make(&cb, &MenuCbAcceptor::accept),
+                  BlindCall::stub());
 
     h.setPassword(password);
     h.commitPassword();
     assertTrue(cb.accepted_);
+}
+
+testF(AuthFormTester, auth_form_fail_auth)
+{
+    struct MenuCbAcceptor
+    {
+        bool accepted_ {false};
+        void accept() { accepted_ = true; }
+    } cb;
+    authForm.init(BlindCall::stub(),
+                  BlindCall::make(&cb, &MenuCbAcceptor::accept));
+
+    h.setPassword(wrongPassword);
+    h.commitPassword();
+    assertTrue(cb.accepted_);
+}
+
+testF(AuthFormTester, auth_form_avoid_auth_the_same_correct_password_again)
+{
+    struct MenuCbAcceptor
+    {
+        bool accepted_ {false};
+        void accept() { accepted_ = true; }
+    } cb;
+    authForm.init(BlindCall::make(&cb, &MenuCbAcceptor::accept), // success auth cb
+                  BlindCall::stub()); // failed auth cb
+
+    h.setPassword(password);
+
+    h.commitPassword();
+    assertTrue(cb.accepted_);
+    //
+    // Try auth with the same password imitating stuck button or accidentiall user button click
+    cb.accepted_ = false;
+    h.commitPassword();
+    assertFalse(cb.accepted_);
+}
+
+testF(AuthFormTester, auth_form_avoid_auth_the_same_wrong_password_again)
+{
+    struct MenuCbAcceptor
+    {
+        bool accepted_ {false};
+        void accept() { accepted_ = true; }
+    } cb;
+    authForm.init(BlindCall::stub(), // success auth cb
+                  BlindCall::make(&cb, &MenuCbAcceptor::accept)); // failed auth cb
+
+    h.setPassword(wrongPassword);
+
+    h.commitPassword();
+    assertTrue(cb.accepted_);
+    //
+    // Try auth with the same wrong password imitating stuck button or accidentiall user button click
+    cb.accepted_ = false;
+    h.commitPassword();
+    assertFalse(cb.accepted_);
 }
 
 #endif // EPOXY_DUINO
