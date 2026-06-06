@@ -6,6 +6,8 @@ Separate device will store your credentials and type then into login forms.
 
 Keep your creds in secret.
 
+<img src="./docs/slide-monitor-with-stickers.png" alt="Presentation" width=768 height=1024>
+
 ## This project is fork of ...
 
 ... https://github.com/seawarrior181/PasswordPump
