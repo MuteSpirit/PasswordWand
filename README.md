@@ -8,6 +8,22 @@ Keep your creds in secret.
 
 <img src="./docs/slide-monitor-with-stickers.png" alt="Presentation" width=768 height=1024>
 
+## Device Components
+
+| Title | Aproximate Price | URL |
+| ---- | ---- | ---- |
+| nRF52840 Pro Micro | 4$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=nrf52840+pro+micro&SortType=total_tranpro_desc) | 
+| SSD1306 I2C OLED display 128x64 0.96 inch | 1.2$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=ssd1306+i2c+128+64&SortType=total_tranpro_desc) |
+| Rotary Encoder with knob | 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=rotary+encoder&SortType=total_tranpro_desc) |
+| 4 x Button | less 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=button&SortType=total_tranpro_desc) |
+| 4 x 10 kOhm resistor | 0.1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=10+kohm+resistor&SortType=total_tranpro_desc) |
+| 4 x 1 kOhm resistor | 0.1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=1+kohm+resistor&SortType=total_tranpro_desc) |
+| 5 x 100uF conductor | 0.05$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=100+uf+conductor&SortType=total_tranpro_desc) |
+| 1 x 100nF conductor | 0.01$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=100+nf+conductor&SortType=total_tranpro_desc) |
+| Type-C cable | 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=type+c+otg+cable&SortType=total_tranpro_desc) |
+| Breadboard or Custom PCB | ? | |
+| Total | 8.06$ + ? | |
+
 ## This project is fork of ...
 
 ... https://github.com/seawarrior181/PasswordPump
