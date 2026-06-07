@@ -67,18 +67,17 @@ Please don't use it until first stable release.
 
 # News
 
+## 03 Jun 2026
+
 * All original code of PasswordPump has been removed from the project. Code base has been developed from scratch.
 * AES128 has been replaced with AES256.
 * Code related to authentication and encrypted storage has been covered by unit tests (AUnit has been used).
-* Unfortunatelly **sketch is too big for Arduino Pro Micro**
+* Unfortunatelly **sketch is too big for Arduino Pro Micro** and need to decide how continue the project
 
-# Roadmap
+## 06 Jun 2026
 
-* Try to use NFR52840 Pro Micro instead of Arduino. We'll have 1MB flash instead of 32KB (where 4KB is reserved for bootloader) and 256KB RAM instead of 2.5KB
-* Try to replace AES256 with AES128Tiny
-* Make test device
-* Finish MVP
-* Make presentation materials
+* Porting code to nRF52840 Pro Micro board is starting
+* Changing project license is planned
 
 # PasswordWand Design
 
