@@ -12,7 +12,7 @@ Keep your creds in secret.
 
 | Title | Aproximate Price | URL |
 | ---- | ---- | ---- |
-| nRF52840 Pro Micro | 4$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=nrf52840+pro+micro&SortType=total_tranpro_desc) | 
+| nRF52840 Pro Micro | 4$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=nrf52840+pro+micro&SortType=total_tranpro_desc) |
 | SSD1306 I2C OLED display 128x64 0.96 inch | 1.2$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=ssd1306+i2c+128+64&SortType=total_tranpro_desc) |
 | Rotary Encoder with knob | 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=rotary+encoder&SortType=total_tranpro_desc) |
 | 4 x Button | less 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=button&SortType=total_tranpro_desc) |
@@ -23,6 +23,19 @@ Keep your creds in secret.
 | Type-C cable | 1$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=type+c+otg+cable&SortType=total_tranpro_desc) |
 | Breadboard or Custom PCB | ? | |
 | Total | 8.06$ + ? | |
+
+## Library Dependencies
+
+_Note: next list is under investigation after decision to change board from Arduino based to nRF52_
+
+| Feature | Library | URL |
+| ------- | ------- | --- |
+| HID Keyboard | tinyUSB | https://github.com/hathach/tinyusb/ |
+| OLED display | Adafruit_SSD1306 | |
+| CLI | SimpleCLI | |
+| Rotary Encoder | RotaryEncoder | |
+| Settings Storage | arduino-NVM | |
+| Creds Storage | arduino-NVM | |
 
 ## This project is fork of ...
 
@@ -44,7 +57,7 @@ GitHub: https://github.com/seawarrior181/PasswordPump
 
 Author: Dan Murphy aka <seawarrior181>
 
-An ATMega32u4 USB based credentials manager. 
+An ATMega32u4 USB based credentials manager.
 See www.5volts.org for more information.
 
 ## **!!! Warning !!!**
@@ -81,10 +94,14 @@ Small project should be opened to become acceptable alternative.
 
 # Disclamers
 
-The PasswordWand is not secure from keylogging attacks (https://en.wikipedia.org/wiki/Keystroke_logging). 
+The PasswordWand is not secure from keylogging attacks (https://en.wikipedia.org/wiki/Keystroke_logging).
 
-Under no circumstances and under no legal theory, whether in tort (including negligence), contract, or otherwise, shall the creator of this device and software be liable to any person for any direct, indirect, special, incidental, or consequential damages of any character arising as a result of the use of the PasswordWand including, without limitation, damages for loss of goodwill, work stoppage, computer failure or malfunction, personal injury, death or any and all other damages or losses. 
+Under no circumstances and under no legal theory, whether in tort (including negligence), contract, or otherwise, shall the creator of this device and software be liable to any person for any direct, indirect, special, incidental, or consequential damages of any character arising as a result of the use of the PasswordWand including, without limitation, damages for loss of goodwill, work stoppage, computer failure or malfunction, personal injury, death or any and all other damages or losses.
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
 
 This program and device are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+# Links
+
+* https://github.com/joric/nrfmicro/wiki/Alternatives?ysclid=mq2n5r73ga247364868
