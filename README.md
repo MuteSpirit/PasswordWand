@@ -10,6 +10,8 @@ Keep your creds in secret.
 
 ## Device Components
 
+Approximate list.
+
 | Title | Aproximate Price | URL |
 | ---- | ---- | ---- |
 | nRF52840 Pro Micro | 4$ | [Aliexpress](https://aliexpress.ru/wholesale?SearchText=nrf52840+pro+micro&SortType=total_tranpro_desc) |
@@ -36,6 +38,38 @@ _Note: next list is under investigation after decision to change board from Ardu
 | Rotary Encoder | RotaryEncoder | |
 | Settings Storage | arduino-NVM | |
 | Creds Storage | arduino-NVM | |
+
+# News
+
+## 03 Jun 2026
+
+* All original code of PasswordPump has been removed from the project. Code base has been developed from scratch.
+* AES128 has been replaced with AES256.
+* Code related to authentication and encrypted storage has been covered by unit tests (AUnit has been used).
+* Unfortunatelly **sketch is too big for Arduino Pro Micro** and need to decide how continue the project
+
+## 06 Jun 2026
+
+* Porting code to nRF52840 Pro Micro board is starting
+* Changing project license is planned
+
+# Designs
+
+## PasswordWand Design
+
+See [design](./designs/hld-password-wand.md)
+
+I hope that available and clear design can gain the trust of users.
+
+Credential manager is device storing sensitive information and it's used for security purposes.
+
+Customers may trust proprietary solutions due to manufacturer reputation even if device internals is unknown.
+
+Small project should be opened as possible to become acceptable alternative.
+
+## Other designs 
+
+* [HLD. Support nRF52840 Pro Micro](./designs/hld-nrf52840-support.md)
 
 ## This project is fork of ...
 
@@ -64,32 +98,6 @@ See www.5volts.org for more information.
 
 Project is under active development.
 Please don't use it until first stable release.
-
-# News
-
-## 03 Jun 2026
-
-* All original code of PasswordPump has been removed from the project. Code base has been developed from scratch.
-* AES128 has been replaced with AES256.
-* Code related to authentication and encrypted storage has been covered by unit tests (AUnit has been used).
-* Unfortunatelly **sketch is too big for Arduino Pro Micro** and need to decide how continue the project
-
-## 06 Jun 2026
-
-* Porting code to nRF52840 Pro Micro board is starting
-* Changing project license is planned
-
-# PasswordWand Design
-
-See design [DESIGN](DESIGN.md)
-
-I hope that available and clear design can gain the trust of users.
-
-Credential manager is device storing sensitive information and it's used for security purposes.
-
-Customers may trust proprietary solutions due to manufacturer reputation even if device internals is unknown.
-
-Small project should be opened to become acceptable alternative.
 
 # Disclamers
 
