@@ -37,61 +37,6 @@ There is another idea for PasswordWand: "Use device embed Common Line Interface 
 :bangbang: Need to check on Arduino Pro Micro because CLI development has been done on Arduino Uno board and I don't know the Pro Micro behavior. Arduino Uno has been used due to simple sketch upload procedure then on Pro Micro (ISP programmer, disconnecting I2C display before each sketch upload).
 But as far as PassPumpGUI can work then CLI should work also.
 
-## Random generator
-
-PasswordPump reads the voltage from ADC_READ_PIN floating pin to seed the random number generator. That pin should be not ground.
-
-Such way of receiving random values depends on electro magneric fields accross the device.
-
-To increase randomizing we may try next things:
-* gather voltage several times and summarize them
-* we may multiply and summarize them, e.g. multiple 4 and summarize with 3
-* use another source of entrophy, i.e. light. Set photoresistor (and one more current limiting resistor) between another analog pin and ground and receive voltage on that pin
-
-I've tested 3 entrophy sources on Arduino Uno:
-1. unplugged pin
-2. 10k Om + photoresistor
-3. digital temperature sensor
-
-Conclusion: all are similar to each other but "unplugged pin" will be less cost
-
-```
-21:05:16.035 -> Temp V=246
-21:05:16.035 -> Unplugged pin V=246
-21:05:16.234 -> Photodiode V=235
-21:05:16.234 -> Temp V=237
-21:05:16.234 -> Unplugged pin V=238
-21:05:16.433 -> Photodiode V=227
-21:05:16.433 -> Temp V=231
-21:05:16.433 -> Unplugged pin V=232
-21:05:16.632 -> Photodiode V=224
-21:05:16.632 -> Temp V=228
-21:05:16.632 -> Unplugged pin V=228
-21:05:16.831 -> Photodiode V=224
-21:05:16.831 -> Temp V=228
-21:05:16.831 -> Unplugged pin V=228
-21:05:17.063 -> Photodiode V=226
-21:05:17.063 -> Temp V=233
-21:05:17.063 -> Unplugged pin V=231
-21:05:17.263 -> Photodiode V=235
-21:05:17.263 -> Temp V=238
-21:05:17.263 -> Unplugged pin V=236
-21:05:17.462 -> Photodiode V=244
-21:05:17.462 -> Temp V=246
-21:05:17.462 -> Unplugged pin V=242
-21:05:17.661 -> Photodiode V=256
-21:05:17.661 -> Temp V=256
-21:05:17.661 -> Unplugged pin V=250
-21:05:17.860 -> Photodiode V=268
-21:05:17.860 -> Temp V=265
-21:05:17.860 -> Unplugged pin V=258
-21:05:18.059 -> Photodiode V=279
-21:05:18.059 -> Temp V=275
-21:05:18.059 -> Unplugged pin V=267
-21:05:18.258 -> Photodiode V=291
-21:05:18.258 -> Temp V=284
-```
-
 ## Typing username/password on PC with PasswordPump
 
 When credentials have been added via CLI the main PasswordPump responsibility is enter username and password into login form on PC. And it should be done with as less minimal steps as possible.
@@ -108,12 +53,6 @@ When credentials have been added via CLI the main PasswordPump responsibility is
 * :heavy_plus_sign: usability is better. User is able to perform all steps on device without switch between PasswordWand and PC mouse/keyboard. Even if website/application login form is complex and several Tabs are required to jump from username edit field to password one
 * :heavy_minus_sign: more buttons on device
 * :heavy_minus_sign: not tested usability with maximum of added accounts. Device should work fast and stable on "Find account" navigate step.
-
-## Board USB port
-
-Use Arduino Pro Micro with Type-C instead micro USB port.
-
-Reason: modern devices commonly use Type-C and micro USB port is outdated.
 
 ## Authentication and related
 
@@ -227,69 +166,6 @@ On authentication
 * If the same then auth passed otherwise increase login fail counter
 * store login fail counter at internal EEPROM
 
-### Change master password
-
-It isn't implementable in in nearest PasswordWand version because 
-* all credentials are encrypted using old master password
-* PasswordWand will not use 2nd external EEPROM chip due to decreasing functionality
-* power cut may happen at any time
-* primary external EEPROM may be full
-
-It's needed to have 2nd EEPROM to store there credentials encrypted by new master password and make that EEPROM primary.
-
-Or it's needed to implement export credentials into file via serial port. And import too. To be able perform scenario:
-* export creds into file
-* perform PasswordWand Factory Reset
-* set new master password
-* import creds from file back to device
-
-### Auto logout on inactivity period expiration
-
-Remember timestamp just after login.
-
-What we treat as activity:
-* Send user/password
-* Change settings
-* CLI usage
-* Any button push
-* Rotating encoder
-
-Because handling any inputs - buttons, Serial, encoder - theoretically may be done via interrupts then it'll be reasonably to raise timer and rearm it on any activity above happen.
-
-Pattern Observer will be reasonable here to avoid knowledge all code about such specific feature as "auto logout".
-
-On power off this logic becomes outdated so timestamp of last activity and time must be in RAM and are not stored in persistent storage.
-
-On timer expiration authentication must be marked as not passed and master password must be wiped by zeros in RAM.
-
-## Encryption
-
-AES128 is used now and encryption and SHA256 for hashing.
-
-:question: why AES256 is not used? Looks like the same encryption library supports AES256 too.
-
-Salt is needed to defense from situation when 
-* intruder received external EEPROM with stored encrypted credentials ...
-* ... and know master password
-Without knowledge about salt he will be not able to decrypt data in suitable time.
-
-Salt must be generated on 1st boot and on factory reset.
-
-Salt must be stored in internal EEPROM.
-
-Salt must be enough strong to make broutforce much harder.
-
-Master password must be stored in RAM only.
-
-Salted Master Password hash must be stored in internal EEPROM.
-
-Salt for each credential account is also needed. It's true that PasswordWand will encrypt them instead of calculation hashes but if not use the unique salt for each account then even encrypted data may show that for more then one site the same login and passwords are used. This project is OpenSource and data storage structure will not be a secret.
-
-So if combine master password with credential salt for decrypt/encrypt the name, username and password then we'll be able to hide information about some login/pass equiality for different services.
-
-Arduino Pro Micro has only 1Kb of internal EEPROM. So we cannot store salt for 254 accounts there. So unique salt will be stored inside each credential account on external EEPROM.
-It's more scalable solution because theoretically it's possible to use bigger 25LC512 and use several chips to store enough more credentials. At that case internal EEPROM cannot store all needed salts anyway.
-
 ## Internal EEPROM Layout
 
 | Parameter Name | Size, bytes | Purpose |
@@ -343,25 +219,6 @@ For example add new account should be done like:
 * Set account commit flag. In last turn.
 
 External EEPROM reinitialization must be done by wiping all data on EEPROM with zeros to be sure that they are descroyed.
-
-## If there are not enough resources on Arduino Pro Micro
-
-What may be tried:
-* check what libraries spend the most part of resources and try to replace/rewrite them.
-* use another board, e.g.
-  * the same as in PasswordPumpII project
-  * ESP32-S2 & ESP32-S3: supports full-speed USB-OTG peripheral which is essential for implementing custom HID devices. 
-    * https://github.com/espressif/arduino-esp32/tree/master/libraries/USB
-    * :heavy_plus_sign: It'll be also emulate Bluetooth keyboard and be able to work with mobile devices too 
-  * nRF52840 Pro Micro
-    * [ZMK Firmware](https://zmk.dev/) support and may work as wired/wireless keyboard
-    * hardware randimize generator (TRNG)
-    * AES encryption
-    * SHA256 hashing
-    * Bluetooth
-    * CPU ARM Cortex-M4F 64MHz, and 1M RAM
-    * Low power consumption
-    * used for Meshtastick also
 
 ## UI
 

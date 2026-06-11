@@ -105,7 +105,7 @@ Conclusion:
 
 TBD
 
-Uses RTOS Zephyr.
+Uses [RTOS Zephyr](https://www.zephyrproject.org/).
 
 * :heavy_minus_sign: increase development complexity
 * :heavy_minus_sign: separate development tools and environment, Arduino IDE cannot be used more.
@@ -119,6 +119,12 @@ BLE, SPI, I2C support must be investigated!
 ## Option 3. ZMK
 
 TBD
+
+https://github.com/zmkfirmware/zmk
+
+Also uses [RTOS Zephyr](https://www.zephyrproject.org/).
+
+Zephyr supports nRF52 based boards (official, not clones), e.g. Adafuit https://docs.zephyrproject.org/latest/boards/adafruit/itsybitsy/doc/index.html
 
 ## Option 4. The same as Meshtastick use
 
