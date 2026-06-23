@@ -29,14 +29,49 @@ TBD
 
 ## Firmware revisions
 
-By default nRF52840 internal memory may contain bootloader, SoftwareDevice, sketch, sketch settings, encrypted storage.
+### Contradiction 1
 
-In general, new fixes/releases are possible for first three of them.
-
-Contradiction:
 * From one side we'd like to avoid upgrade sketch to something else ...
-  * Reason: uploading own sketch is one of variants to read internal memory containing sensitive data
-* ... but from another side firmware components should be upgradable
-  * Reason: use version with fixed all known vulterabilities
+  * Reason: uploading sketch by Intruder is one of variants to read internal memory containing sensitive data
+* ... but from another side firmware components (bootloader, SoftwareDevice, sketch) should be upgradable
+  * Reason: any code contains erros/vulterabilities and updating to new version with fixes is alone way to continue be in safe.
 
-TBD
+The most straightforward way is use Secure Boot (start read from [this thread](https://forum.seeedstudio.com/t/firmware-protection-nrf52840/291651/4)).
+
+As a result - only signed images will be burned.
+
+### Contradiction 2
+
+* We are going to upgrade firmware parts ...
+* ... but new versions might contain errors and brick the device
+
+Let's use "active/commit bank" schema.
+
+By default nRF52840 internal memory contains bootloader, SoftwareDevice and sketch.
+
+We will have two numbers of bootloader, (?) SoftwareDevice (?) and sketch.
+
+On burning new version it'll be written into non active "bank", active bank will be switch to "bank" with new version. And on next boot new version will be started. User'll try to use it and if everything is fine - commit it (== make it main "bank"). Otherwise it'll be enough to reboot device to rollback to previously used firmware.
+
+There will be next on internal NVM:
+```
+bootloader A
+bootloader B
+bootloader settings
+SoftwareDevice A
+SoftwareDevice B
+sketch A
+sketch B
+```
+
+#### Contradiction 2
+
+* We're going to allow birn only signed firmwares ...
+* ... but User SHOULD NOT trust official releases to avoid "Attack On Supply Chain" and SHOULD build new firwares itself ...
+* ... but Developer MUST NOT provide private key of digital sign to anyone
+
+If PasswordWand is DYI then nRF52840 Pro Micro has non secure bootloader and User can burn anything to it.
+
+If PasswordWand manufactured then maybe it's reasonable to burn nothing on it.
+
+Extention of this case is specialized sketch which will only hint User to burn needed parts and do nothing more.

@@ -26,7 +26,7 @@ PasswordWand does not use clipboard buffer for typing username/password/etc. the
 
 ### Intruder knows master password but has no device
 
-Not fail yet but close.
+Not fail yet but it's close.
 
 We may support feature "Change master password". And if you guess that somebody knows your master password then just change it.
 
@@ -47,9 +47,58 @@ We may try prevent catching the master password by someone else technically:
 
 But hiding display is not enough because buttons and rotate encoder manipulations are visible.
 
-At the same time we might do recorded button/encoder actions sequence useless. Let's force User to enter master password not from 1st to last symbol but randomize process of entering first N (? 5 ?) symbols, e.g. 3th, then 1st, then 5th, then 2nd, then 4th, then - the rest tail.
+At the same time we might do recorded button/encoder actions sequence useless. Let's force User to enter master password not from 1st to last symbol sequentially but randomize process of entering first 5 symbols, e.g. 3th, then 1st, then 5th, then 2nd, then 4th, then - the rest tail:
 
-In such case Intruder will have to guess first N symbols and spend all 10 fail login tries.
+```
++-----------------+
+| Enter password: |
+|                 |
+| ..A..           |
++-----------------+
+       ||
+       \/
++-----------------+
+| Enter password: |
+|                 |
+| B.*..           |
++-----------------+
+       ||
+       \/
++-----------------+
+| Enter password: |
+|                 |
+| *.*.5           |
++-----------------+
+       ||
+       \/
++-----------------+
+| Enter password: |
+|                 |
+| *l*.*           |
++-----------------+
+       ||
+       \/
++-----------------+
+| Enter password: |
+|                 |
+| ***n*           |
++-----------------+
+       ||
+       \/
++-----------------+
+| Enter password: |
+|                 |
+| *****A          |
++-----------------+
+```
+
+In such circumstances the Intruder will have to guess first five symbols. Let's calculate a chance to guess them:
+* Intruder knows the used symbols (max five different) because recorded sequence of typing them by User
+* Intruder does not know sequence of that symbols
+* So there are 5^5 possible combinations ...
+* ... and only 10 tries
+* Therefore chance is 10/(5^5) = 0.0032 = 0.32%
+* Sound good for us by my opinion
 
 #### Intruder detected buttons/encoder actions by sound
 
@@ -57,33 +106,19 @@ Maybe it's a fantastic case but I guess possible if different button clicks can 
 
 We may try to use sensor buttons to avoid click sound.
 
+According to previous section knowledge of password symbols will help Intruder only in 0.32% cases.
+
 ### Creds manager is stolen by intruder and he does not know master password
 
-Creds manager does not contain master password in plain view. It contains salt and hash.
-Salt is needed to append it partly to password.
-Hash is needed to confirm that salted password is correct.
+The primary key management feature available for the nRF52840 is the ability to use a Device Root Key (KDR).
 
-Let's assume that intruder received both salt and hash from the device. I guess only hash will be enough to find salted password in rainbow tables. Of course if he has such tables for passwords [33, 64] symbols length. Then it'll be not a problem to decript storage.
+What it is: The KDR is a 128-bit AES key that can be loaded into a special, secure register within the CryptoCell itself. Once loaded, this key is used directly by the CryptoCell hardware for cryptographic operations. The key material never leaves the hardware in plaintext, protecting it from software-based attacks that might try to read it from normal system RAM. The key is stored in an "Always on Domain" (AO), meaning it is retained between resets.
 
-So we must not allow anyone to read master password hash from the device.
+Settings and credential accounts will be encrypted on internal NVM using KDR and CryptoCell.
 
-And looks like it's possible but requires extra work - read this thread https://forum.seeedstudio.com/t/firmware-protection-nrf52840/291651/4
+Using secure bootloader which allow to install only signed bootloader/sketch we'll protect from 3rd party sketch burning to be able access CryptoCell and encrypted data. Looks like it's possible but requires extra work - read this thread https://forum.seeedstudio.com/t/firmware-protection-nrf52840/291651/4
 
-nRF52840 datasheet says about next features:
-* ARM Cryptocell CC310 cryptographic accelerator
-* 128 bit AES/ECB/CCM/AAR co-processor
-
-Device will be protected, intruder will be not able to read memory, update bootloader or update sketch on device.
-
-Cryptocell-310 has NO Key Management Unit so we have to store hash and salt in internal NVM flash memory.
-
-Let's change master password verify procedure:
-* Receive password from user
-* Salt it
-* Encrypt some random string using AES256 in ECB mode
-  * Reason: ECB mode does not use IV and output for the same input text is stable for each call
-* Ask Cryptocell encrypt the same string using key from TrustZone and AES256 in ECB mode
-* Compare result
+Device will be protected, Intruder will be not able to read memory, update bootloader or update sketch on device.
 
 ### Creds manager is physically stolen together with you and intruder really seriously ask you the password
 
@@ -127,7 +162,7 @@ Use case: auth using special password and ...
 ... device will show list of accounts (how???) but without ability to unhide passwords or activate CLI.
   * Reason: to avoid show password via any possible outputs
 
-#### Option 5. Implement all variants
+#### Option 5. Implement all variants and allow User to choose scenario preliminary
 
 You will be able to follow scenarios similar next:
 1. say wrong password, lost one login try and some health, say password to open fake storage.

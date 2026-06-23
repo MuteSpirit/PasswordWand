@@ -155,3 +155,14 @@ Possible case:
 * 8th - for 1 month
 * 9th - for 2 month
 * etc.
+
+### Combine device with "Sound Wall"
+
+There will be two "spy" features in one device - creds manager and "sound wall" - protection some space using "active noise attenuation" principe. 
+
+### Combine device with something else
+
+* tourch
+* laser distance sensor
+* body temperature sensor
+* ...
