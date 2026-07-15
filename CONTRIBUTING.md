@@ -30,3 +30,11 @@ where `<module>` is name of file/feature/module
 Reasons:
 1. Unit tests should be as closer as possible to the code. So tests are located at folder with sources and use middle extension `.t.` to be sorted closer to tested code but not become too long file name.
 2. But not in the same files to not mix working and testing code. And maybe have ability to write tests on several languages, test frameworks for the same module.
+
+# Commit signing
+
+To try avoid troubles from "Software supply chain attack" let's sign each commit.
+
+# Commit message
+
+Add "Signed-off-by" trailer in commit message.
